@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>房地产案场智能 Agent 助手 - 市场与竞品分析报告</title>
+  <style>
+    :root {
+      --primary: #1a6ff4;
+      --primary-light: #e8f0fe;
+      --accent: #0ea5e9;
+      --dark: #0f172a;
+      --gray-900: #1e293b;
+      --gray-700: #334155;
+      --gray-500: #64748b;
+      --gray-300: #cbd5e1;
+      --gray-100: #f1f5f9;
+      --white: #ffffff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --teal: #14b8a6;
+      --orange: #f97316;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --pink: #ec4899;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: var(--gray-900);
+      line-height: 1.7;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1a6ff4 100%);
+      padding: 80px 0 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    }
+    .hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 24px;
+      backdrop-filter: blur(8px);
+    }
+    .hero-badge .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .hero h1 span { color: #60a5fa; }
+    .hero-sub {
+      font-size: 18px;
+      color: rgba(255,255,255,0.7);
+      max-width: 600px;
+      margin-bottom: 40px;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+    }
+    .hero-meta-item svg { opacity: 0.7; }
+
+    /* ── Layout ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    .report-body { padding: 56px 0; }
+
+    /* ── Table of Contents ── */
+    .toc {
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 48px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .toc h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 32px;
+    }
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--primary);
+      text-decoration: none;
+      padding: 4px 0;
+      transition: color 0.2s;
+    }
+    .toc-item:hover { color: var(--accent); }
+    .toc-num {
+      width: 22px;
+      height: 22px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 64px; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .section-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .section-icon.blue { background: #dbeafe; }
+    .section-icon.green { background: #d1fae5; }
+    .section-icon.purple { background: #ede9fe; }
+    .section-icon.orange { background: #ffedd5; }
+    .section-icon.teal { background: #ccfbf1; }
+    .section-icon.red { background: #fee2e2; }
+    .section-icon.yellow { background: #fef9c3; }
+    .section-icon.pink { background: #fce7f3; }
+
+    .section-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--gray-500);
+      margin-top: 4px;
+    }
+
+    .section-divider {
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
+      border-radius: 2px;
+      margin-bottom: 28px;
+      width: 60px;
+    }
+
+    /* ── Part Header ── */
+    .part-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      border-radius: 20px;
+      padding: 32px 40px;
+      margin-bottom: 40px;
+      color: white;
+    }
+    .part-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #60a5fa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .part-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .part-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* ── Prose ── */
+    .prose p { color: var(--gray-700); margin-bottom: 16px; font-size: 15.5px; }
+    .prose p:last-child { margin-bottom: 0; }
+
+    /* ── Info Cards ── */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-weight: 600;
+    }
+    .tag-blue { background: var(--primary-light); color: var(--primary); }
+    .tag-green { background: #d1fae5; color: #065f46; }
+    .tag-orange { background: #ffedd5; color: #9a3412; }
+    .tag-purple { background: #ede9fe; color: #5b21b6; }
+    .tag-teal { background: #ccfbf1; color: #0f766e; }
+    .tag-red { background: #fee2e2; color: #991b1b; }
+    .tag-yellow { background: #fef9c3; color: #92400e; }
+
+    /* ── Grid Layouts ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    /* ── Finding Cards ── */
+    .finding-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .finding-card:hover {
+      box-shadow: 0 4px 16px rgba(26,111,244,0.12);
+      transform: translateY(-2px);
+    }
+    .finding-icon { font-size: 32px; margin-bottom: 12px; }
+    .finding-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .finding-desc { font-size: 13.5px; color: var(--gray-500); line-height: 1.6; }
+
+    /* ── Highlight Box ── */
+    .highlight-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .highlight-box h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .highlight-box p { font-size: 14px; color: #1e40af; line-height: 1.7; margin: 0; }
+
+    /* ── Comparison Table ── */
+    .compare-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04); }
+    .compare-table thead tr { background: var(--dark); }
+    .compare-table th {
+      padding: 14px 18px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      text-align: left;
+    }
+    .compare-table th:first-child { border-radius: 14px 0 0 0; }
+    .compare-table th:last-child { border-radius: 0 14px 0 0; }
+    .compare-table td {
+      padding: 13px 18px;
+      font-size: 14px;
+      color: var(--gray-700);
+      border-bottom: 1px solid var(--gray-100);
+      background: var(--white);
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:last-child td:first-child { border-radius: 0 0 0 14px; }
+    .compare-table tr:last-child td:last-child { border-radius: 0 0 14px 0; }
+    .compare-table tbody tr:hover td { background: #f8fafc; }
+    .star { color: #f59e0b; }
+    .half-star { color: #d1d5db; }
+
+    /* ── SWOT ── */
+    .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .swot-card { border-radius: 14px; padding: 22px; }
+    .swot-card.s { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+    .swot-card.w { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+    .swot-card.o { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+    .swot-card.t { background: linear-gradient(135deg, #fef9c3, #fde68a); }
+    .swot-label { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+    .swot-card.s .swot-label { color: #065f46; }
+    .swot-card.w .swot-label { color: #991b1b; }
+    .swot-card.o .swot-label { color: #1e40af; }
+    .swot-card.t .swot-label { color: #92400e; }
+    .swot-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .swot-card.s .swot-title { color: #065f46; }
+    .swot-card.w .swot-title { color: #991b1b; }
+    .swot-card.o .swot-title { color: #1e40af; }
+    .swot-card.t .swot-title { color: #92400e; }
+    .swot-list { list-style: none; }
+    .swot-list li {
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin-bottom: 6px;
+      padding-left: 16px;
+      position: relative;
+    }
+    .swot-list li::before { content: '·'; position: absolute; left: 4px; font-size: 18px; line-height: 1.2; }
+    .swot-card.s .swot-list li { color: #064e3b; }
+    .swot-card.w .swot-list li { color: #7f1d1d; }
+    .swot-card.o .swot-list li { color: #1e3a8a; }
+    .swot-card.t .swot-list li { color: #78350f; }
+
+    /* ── Summary ── */
+    .summary-box {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      border-radius: 20px;
+      padding: 40px;
+      color: white;
+    }
+    .summary-box h3 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+    .summary-box p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+    .summary-box p:last-child { margin-bottom: 0; }
+
+    /* ── Footer ── */
+    .report-footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 28px;
+      font-size: 13px;
+    }
+    .report-footer strong { color: rgba(255,255,255,0.8); }
+
+    /* ── Callout ── */
+    .callout {
+      border-left: 4px solid;
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      font-size: 14.5px;
+    }
+    .callout.info { background: #eff6ff; border-color: var(--primary); color: #1e40af; }
+    .callout.success { background: #ecfdf5; border-color: var(--success); color: #065f46; }
+    .callout.warning { background: #fffbeb; border-color: var(--warning); color: #92400e; }
+    .callout.danger { background: #fef2f2; border-color: var(--danger); color: #991b1b; }
+
+    /* ── Rating Bar ── */
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .rating-label { font-size: 14px; color: var(--gray-700); width: 120px; flex-shrink: 0; }
+    .rating-bar-bg { flex: 1; height: 8px; background: var(--gray-100); border-radius: 100px; overflow: hidden; }
+    .rating-bar { height: 100%; border-radius: 100px; }
+    .rating-score { font-size: 13px; font-weight: 700; color: var(--gray-700); width: 32px; text-align: right; }
+
+    /* ── Timeline ── */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 2px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -28px;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    .timeline-date {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 100px;
+      margin-bottom: 6px;
+    }
+    .timeline-content {
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 14.5px;
+      color: var(--gray-700);
+    }
+    .timeline-content strong { color: var(--dark); }
+
+    /* ── Feature Card ── */
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: 14px;
+      padding: 20px;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      box-shadow: 0 4px 16px rgba(26,111,244,0.1);
+      transform: translateY(-2px);
+    }
+    .feature-icon { font-size: 28px; margin-bottom: 10px; }
+    .feature-name { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+    .feature-desc { font-size: 13.5px; color: var(--gray-500); line-height: 1.6; }
+
+    /* ── User Card ── */
+    .user-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--gray-300);
+      text-align: center;
+    }
+    .user-avatar { font-size: 36px; margin-bottom: 8px; }
+    .user-type { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+    .user-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 10px; }
+    .user-tag {
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 100px;
+      background: var(--gray-100);
+      color: var(--gray-500);
+      font-weight: 500;
+    }
+    .user-desc { font-size: 13px; color: var(--gray-500); line-height: 1.6; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 32px; }
+      .grid-2, .grid-3, .grid-4, .swot-grid, .toc-grid { grid-template-columns: 1fr; }
+      .compare-table { font-size: 12px; }
+      .compare-table th, .compare-table td { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      深度研究报告 · 市场与竞品分析
+    </div>
+    <h1>房地产案场<span>智能 Agent</span><br>助手</h1>
+    <p class="hero-sub">全面分析房地产AI营销市场，深度解读克而瑞、明源云客、原圈科技、贝壳、旺小宝等核心竞品，为产品战略决策提供数据支撑</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        2026年4月 · V1.0
+      </div>
+      <div class="hero-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        机密文件 · 限内部使用
+      </div>
+      <div class="hero-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        案场销售经理核心定位
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ BODY ══════════ -->
+<div class="report-body">
+<div class="container">
+
+  <!-- 目录 -->
+  <div class="toc">
+    <h3>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      报告目录
+    </h3>
+    <div class="toc-grid">
+      <a href="#sec1" class="toc-item"><span class="toc-num">01</span>执行摘要</a>
+      <a href="#sec2" class="toc-item"><span class="toc-num">02</span>行业概述与市场现状</a>
+      <a href="#sec3" class="toc-item"><span class="toc-num">03</span>市场规模与增长预测</a>
+      <a href="#sec4" class="toc-item"><span class="toc-num">04</span>政策环境分析</a>
+      <a href="#sec5" class="toc-item"><span class="toc-num">05</span>发展趋势分析</a>
+      <a href="#sec6" class="toc-item"><span class="toc-num">06</span>目标客户分析</a>
+      <a href="#sec7" class="toc-item"><span class="toc-num">07</span>竞争格局总览</a>
+      <a href="#sec8" class="toc-item"><span class="toc-num">08</span>核心竞品深度分析</a>
+      <a href="#sec9" class="toc-item"><span class="toc-num">09</span>竞品功能对比矩阵</a>
+      <a href="#sec10" class="toc-item"><span class="toc-num">10</span>竞争格局小结与启示</a>
+      <a href="#sec11" class="toc-item"><span class="toc-num">11</span>市场机会分析</a>
+      <a href="#sec12" class="toc-item"><span class="toc-num">12</span>风险分析</a>
+      <a href="#sec13" class="toc-item"><span class="toc-num">13</span>战略建议</a>
+      <a href="#sec14" class="toc-item"><span class="toc-num">14</span>产品运营规划</a>
+      <a href="#sec15" class="toc-item"><span class="toc-num">15</span>产品商业化规划</a>
+    </div>
+  </div>
+
+  <!-- ── 第一节：执行摘要 ── -->
+  <div class="section" id="sec1">
+    <div class="section-header">
+      <div class="section-icon blue">📊</div>
+      <div>
+        <div class="section-title">01 执行摘要</div>
+        <div class="section-subtitle">核心发现与关键洞察</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="prose">
+      <p>本报告旨在全面分析房地产案场智能 Agent 助手市场，为产品规划与战略决策提供数据支撑与洞察。报告涵盖行业现状、市场规模、政策环境、发展趋势、目标客户、竞争格局、机会与风险等维度，力求覆盖所有关键考量因素。</p>
+    </div>
+
+    <div class="grid-3" style="margin-top: 24px;">
+      <div class="finding-card">
+        <div class="finding-icon">📈</div>
+        <div class="finding-title">市场规模</div>
+        <div class="finding-desc">全球房地产AI市场预计从2026年的23.2亿美元增长至2035年的106.9亿美元，CAGR达18.48%。</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">📜</div>
+        <div class="finding-title">政策利好</div>
+        <div class="finding-desc">2026年中央经济工作会议明确"着力稳定房地产市场"，政策组合拳持续发力。</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">🤖</div>
+        <div class="finding-title">技术成熟</div>
+        <div class="finding-desc">AI技术正在从"决策支撑工具"向"驱动增长的核心引擎"转变，Agent架构成为落地主流路径。</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">💼</div>
+        <div class="finding-title">需求旺盛</div>
+        <div class="finding-desc">超七成房企最期待AI实现"精准的市场预测和定价"，案场销售管理是最高频刚需场景。</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">⚔️</div>
+        <div class="finding-title">竞争加剧</div>
+        <div class="finding-desc">明源云、原圈科技、克而瑞等头部玩家已布局，TOP50房企占据78%的AI营销投入。</div>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon">⚠️</div>
+        <div class="finding-title">关键挑战</div>
+        <div class="finding-desc">72.7%的企业存在数据孤岛问题，既懂地产又懂AI的复合型人才占比低于10%。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第二节：行业概述 ── -->
+  <div class="section" id="sec2">
+    <div class="section-header">
+      <div class="section-icon purple">🏠</div>
+      <div>
+        <div class="section-title">02 行业概述与市场现状</div>
+        <div class="section-subtitle">房地产行业数字化转型背景与AI应用现状</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="prose">
+      <p><strong>房地产行业正经历从高速增长向高质量发展的关键转型期。</strong>在"控增量、去库存、优供给"的政策基调下，房企竞争焦点从规模扩张转向精细化运营，数字化成为核心竞争力。</p>
+      <p>2025年被视为房地产AI应用的"元年"，DeepSeek引发的技术狂潮持续震荡着全球商业版图，生成式AI正以摧枯拉朽之势重塑房地产营销的底层逻辑。</p>
+    </div>
+
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-title">🔍 主要应用场景</div>
+      <div class="grid-2">
+        <div>
+          <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+            <li style="margin-bottom: 8px;"><strong>智能营销：</strong>AI生成营销内容、智能外呼、精准投放</li>
+            <li style="margin-bottom: 8px;"><strong>案场管理：</strong>智能工牌、销讲分析、转化率提升</li>
+            <li style="margin-bottom: 8px;"><strong>客户服务：</strong>智能客服、AI销售员、NLP情绪解析</li>
+          </ul>
+        </div>
+        <div>
+          <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+            <li style="margin-bottom: 8px;"><strong>数据洞察：</strong>市场预测、竞品分析、客户画像</li>
+            <li style="margin-bottom: 8px;"><strong>运营优化：</strong>流程自动化、风险预警、资源调度</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">😰 五大核心痛点与AI介入空间</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>痛点类型</th>
+            <th>具体表现</th>
+            <th>AI介入价值</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>客户数据管理混乱</td>
+            <td>信息分散、数据易丢失、画像模糊</td>
+            <td>统一管理、智能补全、精准画像</td>
+          </tr>
+          <tr>
+            <td>销售流程追踪不足</td>
+            <td>节点模糊、责任不明、流失率高</td>
+            <td>全流程数字化、透明化追溯</td>
+          </tr>
+          <tr>
+            <td>团队协作效率低</td>
+            <td>沟通不畅、激励单一、流失率38%</td>
+            <td>智能协作、多元激励、降低流失</td>
+          </tr>
+          <tr>
+            <td>数据分析决策滞后</td>
+            <td>维度单一、依赖经验、反馈慢</td>
+            <td>实时分析、数据驱动、智能预测</td>
+          </tr>
+          <tr>
+            <td>合规风险管控薄弱</td>
+            <td>合规难、泄露风险、纠纷隐患</td>
+            <td>流程固化、预警机制、权限管控</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 第三节：市场规模 ── -->
+  <div class="section" id="sec3">
+    <div class="section-header">
+      <div class="section-icon green">📈</div>
+      <div>
+        <div class="section-title">03 市场规模与增长预测</div>
+        <div class="section-subtitle">全球与中国市场数据洞察</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🌍 全球房地产AI市场规模</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>指标</th>
+            <th>2026年数据</th>
+            <th>2035年预测</th>
+            <th>复合增长率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>全球市场规模</td>
+            <td>23.2亿美元</td>
+            <td>106.9亿美元</td>
+            <td><strong style="color: #10b981;">18.48%</strong></td>
+          </tr>
+          <tr>
+            <td>中国市场规模</td>
+            <td>增速领先全球</td>
+            <td>成为最大单一市场</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>AI渗透率</td>
+            <td>头部房企已突破30%</td>
+            <td>预计超过60%</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">🚀 细分市场规模预测</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>细分领域</th>
+            <th>2026年(亿元)</th>
+            <th>2028年预测(亿元)</th>
+            <th>CAGR</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AI营销与CRM</td>
+            <td>45</td>
+            <td>120</td>
+            <td><span class="tag tag-orange">63%</span></td>
+          </tr>
+          <tr>
+            <td>智能案场管理</td>
+            <td>28</td>
+            <td>85</td>
+            <td><span class="tag tag-red">70%</span></td>
+          </tr>
+          <tr>
+            <td>AI销售辅助</td>
+            <td>35</td>
+            <td>100</td>
+            <td><span class="tag tag-orange">69%</span></td>
+          </tr>
+          <tr>
+            <td>数据洞察与分析</td>
+            <td>22</td>
+            <td>65</td>
+            <td><span class="tag tag-red">72%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info" style="margin-top: 20px;">
+      <strong>💡 市场驱动因素：</strong>市场需求端（行业利润率持续承压）、技术供给端（DeepSeek等国产模型崛起）、政策支持端（数字经济发展）、竞争驱动端（TOP50房企占据78%的AI营销投入）四重因素叠加，推动市场高速增长。
+    </div>
+  </div>
+
+  <!-- ── 第四节：政策环境 ── -->
+  <div class="section" id="sec4">
+    <div class="section-header">
+      <div class="section-icon teal">📜</div>
+      <div>
+        <div class="section-title">04 政策环境分析</div>
+        <div class="section-subtitle">国家政策支持与合规要求</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🏛️ 国家层面政策支持</div>
+      <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+        <li style="margin-bottom: 10px;"><strong>中央经济工作会议(2025.12)：</strong>明确"着力稳定房地产市场"，"因城施策控增量、去库存、优供给"</li>
+        <li style="margin-bottom: 10px;"><strong>全国住房城乡建设工作会议：</strong>部署2026年住房和房地产工作，推动房地产市场平稳健康发展</li>
+        <li style="margin-bottom: 10px;"><strong>"十五五"规划：</strong>强调房地产企业数字化转型，构建战略引领、场景导向、数据驱动的转型框架</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">⚖️ 行业监管与合规要求</div>
+      <div class="grid-2">
+        <div class="highlight-box">
+          <h4>数据安全</h4>
+          <p>《个人信息保护法》《数据安全法》对客户数据采集、存储、使用提出严格要求</p>
+        </div>
+        <div class="highlight-box">
+          <h4>算法合规</h4>
+          <p>AI算法需符合《互联网信息服务算法推荐管理规定》相关要求</p>
+        </div>
+        <div class="highlight-box">
+          <h4>信息安全</h4>
+          <p>案场录音等数据涉及隐私，需建立完善的数据保护机制</p>
+        </div>
+        <div class="highlight-box">
+          <h4>内容合规</h4>
+          <p>AI生成内容需符合房地产广告发布相关规定</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第五节：发展趋势 ── -->
+  <div class="section" id="sec5">
+    <div class="section-header">
+      <div class="section-icon orange">🚀</div>
+      <div>
+        <div class="section-title">05 发展趋势分析</div>
+        <div class="section-subtitle">技术趋势、应用场景趋势与组织人才趋势</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-name">AI Agent架构</div>
+        <div class="feature-desc">从单点工具向自主智能体演进，可自主完成复杂任务</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖼️</div>
+        <div class="feature-name">多模态融合</div>
+        <div class="feature-desc">语音、文本、图像、视频统一理解，案场全场景覆盖</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-name">垂直领域大模型</div>
+        <div class="feature-desc">基于200万+房地产语料训练，专业场景准确率99.3%</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-name">实时个性化</div>
+        <div class="feature-desc">基于用户行为的动态内容生成与推荐</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-name">主动预警能力</div>
+        <div class="feature-desc">从被动响应到主动发现风险与机会</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-title">📅 AI应用演进阶段</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">2022-2024</div>
+          <div class="timeline-content"><strong>第一阶段：单点工具</strong> — AI辅助内容生成、智能客服等单一功能</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2025-2026</div>
+          <div class="timeline-content"><strong>第二阶段：流程整合</strong> — AI贯穿案场管理全流程，数据闭环</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2027+</div>
+          <div class="timeline-content"><strong>第三阶段：智能决策</strong> — AI自主分析、预测、决策，主动推送洞察</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">👥 企业最急需的AI人才类型</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>人才类型</th>
+            <th>需求占比</th>
+            <th>紧缺程度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>营销策划+AI产品经理</td>
+            <td>75%</td>
+            <td><span class="tag tag-red">极度紧缺</span></td>
+          </tr>
+          <tr>
+            <td>地产投资+AI分析师</td>
+            <td>66.67%</td>
+            <td><span class="tag tag-red">极度紧缺</span></td>
+          </tr>
+          <tr>
+            <td>AI Agent开发工程师</td>
+            <td>58%</td>
+            <td><span class="tag tag-orange">高度紧缺</span></td>
+          </tr>
+          <tr>
+            <td>数据治理专家</td>
+            <td>52%</td>
+            <td><span class="tag tag-orange">高度紧缺</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 第六节：目标客户 ── -->
+  <div class="section" id="sec6">
+    <div class="section-header">
+      <div class="section-icon pink">👤</div>
+      <div>
+        <div class="section-title">06 目标客户分析</div>
+        <div class="section-subtitle">案场销售经理画像与核心需求</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🎯 案场销售经理画像</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>特征描述</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>基本信息</td>
+            <td>年龄28-45岁，本科以上学历，3年以上房地产销售经验</td>
+          </tr>
+          <tr>
+            <td>工作职责</td>
+            <td>案场日常管理、销售团队建设、客户关系维护、业绩指标达成</td>
+          </tr>
+          <tr>
+            <td>核心痛点</td>
+            <td>数据分散难汇总、跟进不及时、决策缺依据、团队难管控</td>
+          </tr>
+          <tr>
+            <td>技术能力</td>
+            <td>熟练使用微信、企微、钉钉等办公软件，Excel操作熟练</td>
+          </tr>
+          <tr>
+            <td>工作节奏</td>
+            <td>高强度、快节奏，需随时响应客户和团队需求</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">💡 四大核心需求</div>
+      <div class="highlight-box">
+        <h4>1. 数据洞察类需求</h4>
+        <p>实时掌握案场来访、成交、转化数据；自动生成日报、周报、月报；竞品动态实时监控与分析；客户画像与行为预测</p>
+      </div>
+      <div class="highlight-box">
+        <h4>2. 业务执行类需求</h4>
+        <p>自动生成营销计划、推广方案；制定团队奖惩制度与激励方案；智能生成销售话术与应对策略；客户跟进自动提醒与任务分配</p>
+      </div>
+      <div class="highlight-box">
+        <h4>3. 风险预警类需求</h4>
+        <p>客户流失风险预警；业绩目标达成风险提示；竞品动作预警；合规风险提醒</p>
+      </div>
+      <div class="highlight-box">
+        <h4>4. 协作沟通类需求</h4>
+        <p>团队任务自动派发与追踪；会议纪要自动生成；多平台消息统一处理；跨部门协作流程优化</p>
+      </div>
+    </div>
+
+    <div class="callout warning" style="margin-top: 20px;">
+      <strong>💰 购买决策影响因素：</strong>使用便捷性(85%) > 效果可量化(78%) > 数据安全性(72%) > 服务响应速度(65%) > 性价比(60%)
+    </div>
+  </div>
+
+  <!-- ── 第七节：竞争格局 ── -->
+  <div class="section" id="sec7">
+    <div class="section-header">
+      <div class="section-icon red">⚔️</div>
+      <div>
+        <div class="section-title">07 竞争格局总览</div>
+        <div class="section-subtitle">竞争者分类与市场定位</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">📊 竞争者分类矩阵</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>类型</th>
+            <th>代表产品</th>
+            <th>核心优势</th>
+            <th>核心劣势</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>传统CRM+AI</td>
+            <td>明源云CRM、简道云CRM</td>
+            <td>客户基础深厚，功能全面</td>
+            <td>AI能力浅，数据孤岛严重</td>
+          </tr>
+          <tr>
+            <td>垂直领域AI Agent</td>
+            <td>克而瑞CRIC深度智联</td>
+            <td>行业数据积累深，专业性强</td>
+            <td>主要面向管理层，非一线</td>
+          </tr>
+          <tr>
+            <td>AI营销工具矩阵</td>
+            <td>原圈科技(天眼/天工/天声)</td>
+            <td>全流程覆盖，效果量化</td>
+            <td>部署复杂，成本较高</td>
+          </tr>
+          <tr>
+            <td>硬件+AI整合</td>
+            <td>旺小宝AI工牌</td>
+            <td>线下数据采集，销讲分析</td>
+            <td>偏硬件，AI能力有限</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">🏆 竞争格局三大阵营</div>
+      <div class="grid-3">
+        <div class="finding-card" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+          <div class="finding-icon">🥇</div>
+          <div class="finding-title">第一阵营</div>
+          <div class="finding-desc">明源云客、克而瑞、原圈科技<br>资金充裕、技术领先、份额高</div>
+        </div>
+        <div class="finding-card" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+          <div class="finding-icon">🥈</div>
+          <div class="finding-title">第二阵营</div>
+          <div class="finding-desc">旺小宝、贝壳<br>专注细分场景，快速迭代</div>
+        </div>
+        <div class="finding-card" style="background: linear-gradient(135deg, #fef9c3, #fde68a);">
+          <div class="finding-icon">🥉</div>
+          <div class="finding-title">第三阵营</div>
+          <div class="finding-desc">通用AI工具、创业公司<br>灵活创新，单点突破</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">🎯 竞争关键维度</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>权重</th>
+            <th>核心竞品表现</th>
+            <th>我们的机会</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>行业数据积累</td>
+            <td>30%</td>
+            <td>克而瑞20年、明源海量案场数据</td>
+            <td>聚焦案场经理场景的深度数据</td>
+          </tr>
+          <tr>
+            <td>AI技术能力</td>
+            <td>25%</td>
+            <td>大模型+垂直训练，专业场景99.3%准确率</td>
+            <td>Agent架构+主动预警能力</td>
+          </tr>
+          <tr>
+            <td>产品落地能力</td>
+            <td>20%</td>
+            <td>全流程覆盖，但面向管理层多</td>
+            <td>聚焦一线销售经理的日常场景</td>
+          </tr>
+          <tr>
+            <td>渠道与生态</td>
+            <td>15%</td>
+            <td>明源渠道强，克而瑞品牌强</td>
+            <td>独立App+多平台覆盖</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 第八节：核心竞品深度分析 ── -->
+  <div class="section" id="sec8">
+    <div class="section-header">
+      <div class="section-icon purple">🔍</div>
+      <div>
+        <div class="section-title">08 核心竞品深度分析</div>
+        <div class="section-subtitle">五大核心竞品全面解读</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <!-- 克而瑞 -->
+    <div class="card">
+      <div class="card-title">🏢 克而瑞CRIC深度智联 <span class="tag tag-purple">决策支持型</span></div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>维度</th><th>详情</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>产品定位</td><td>中国房地产行业首个垂直领域AI Agent</td></tr>
+          <tr><td>技术基础</td><td>基于克而瑞20年行业经验和海量数据，结合多模态大模型技术</td></tr>
+          <tr><td>核心功能</td><td>智能搜索、报告生成、知识库管理、文章创作</td></tr>
+          <tr><td>定价策略</td><td>1次创作30元，3次72元，10次210元，企业版定制</td></tr>
+          <tr><td><strong style="color: #10b981;">核心优势</strong></td><td>20年行业数据积累，权威性强；报告生成能力突出</td></tr>
+          <tr><td><strong style="color: #ef4444;">核心劣势</strong></td><td>主要面向管理层和决策层，对一线销售经理场景覆盖不足</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 明源云客 -->
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-title">🏠 明源云客智慧案场 <span class="tag tag-blue">管理系统型</span></div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>维度</th><th>详情</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>产品定位</td><td>房地产垂直领域最大的SaaS服务商，智慧案场解决方案</td></tr>
+          <tr><td>技术基础</td><td>基于200万+房地产语料训练，垂直领域深度定制</td></tr>
+          <tr><td>核心功能</td><td>智慧营销、智慧管理、场景体验三大体系</td></tr>
+          <tr><td>市场覆盖</td><td>1000+开发商、5000+项目，TOP100房企全覆盖</td></tr>
+          <tr><td>典型效果</td><td>某千亿级房企人工成本降40%、产能提升300%，成交转化率提升15%</td></tr>
+          <tr><td><strong style="color: #10b981;">核心优势</strong></td><td>客户基础深厚，功能全面；软硬件结合能力强</td></tr>
+          <tr><td><strong style="color: #ef4444;">核心劣势</strong></td><td>AI能力相对浅层；以系统管理为主，非AI Agent形态</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 原圈科技 -->
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-title">⚡ 原圈科技智能体矩阵 <span class="tag tag-orange">全流程赋能型</span></div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>维度</th><th>详情</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>产品定位</td><td>国际领先的高净值行业智慧营销服务提供商</td></tr>
+          <tr><td>核心架构</td><td>"经纶"多智能体营销系统（Agent Stack）</td></tr>
+          <tr><td>三大智能体</td><td>天眼(市场洞察)、天工(AIGC内容)、天声(AI语音交互)</td></tr>
+          <tr><td>部署方式</td><td>私有化部署，兼容多类大模型(DeepSeek/GPT/Claude等)</td></tr>
+          <tr><td>典型效果</td><td>留资转化率提升47%，ROI提升432%</td></tr>
+          <tr><td><strong style="color: #10b981;">核心优势</strong></td><td>全流程赋能；数据安全；效果可量化</td></tr>
+          <tr><td><strong style="color: #ef4444;">核心劣势</strong></td><td>部署复杂度和成本较高，中小房企难以承受</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 贝壳 -->
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-title">🏠 贝壳AI产品矩阵 <span class="tag tag-teal">居住服务型</span></div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>维度</th><th>详情</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>产品定位</td><td>居住服务领域AI应用领导者</td></tr>
+          <tr><td>核心产品</td><td>AI CRM智能体"来客"(经纪人端)、C端AI助手"布丁"</td></tr>
+          <tr><td>数据优势</td><td>贝壳多年积累的真实交易数据、专业知识图谱</td></tr>
+          <tr><td>试点规模</td><td>截至2025年3月，超20万经纪人试点，累计服务超250万客户</td></tr>
+          <tr><td><strong style="color: #10b981;">核心优势</strong></td><td>数据积累深厚；企业微信生态深度整合；规模化应用成熟</td></tr>
+          <tr><td><strong style="color: #ef4444;">核心劣势</strong></td><td>主要面向二手房经纪场景，与新房案场场景有差异</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 旺小宝 -->
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-title">🎙️ 旺小宝AI销售助手 <span class="tag tag-red">硬件导向型</span></div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>维度</th><th>详情</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>产品定位</td><td>面向高客单价行业的通用销售智能AI助手</td></tr>
+          <tr><td>核心技术</td><td>基于百川智能DeepSeek模型，融合百万小时线下真实销售数据</td></tr>
+          <tr><td>核心功能</td><td>AI语音工牌采集、对话数据处理、客户画像生成、销讲分析</td></tr>
+          <tr><td>市场覆盖</td><td>服务超过16000个案场/门店，与百强房企合作率达97%</td></tr>
+          <tr><td><strong style="color: #10b981;">核心优势</strong></td><td>线下真实销售数据积累深；解决"销售黑匣子"痛点</td></tr>
+          <tr><td><strong style="color: #ef4444;">核心劣势</strong></td><td>偏硬件导向，AI Agent能力相对有限，非对话式交互</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 第九节：竞品功能对比 ── -->
+  <div class="section" id="sec9">
+    <div class="section-header">
+      <div class="section-icon green">📊</div>
+      <div>
+        <div class="section-title">09 竞品功能对比矩阵</div>
+        <div class="section-subtitle">核心功能维度对比与差异化机会识别</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🔧 核心功能维度对比</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>功能模块</th>
+            <th>克而瑞</th>
+            <th>明源云客</th>
+            <th>原圈科技</th>
+            <th>贝壳</th>
+            <th>旺小宝</th>
+            <th>我们的机会</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>数据洞察/报告生成</td>
+            <td class="star">★★★★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★★</td>
+          </tr>
+          <tr>
+            <td>竞品分析</td>
+            <td class="star">★★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★</td>
+            <td class="star">★★★★</td>
+          </tr>
+          <tr>
+            <td>主动预警/推送</td>
+            <td class="star">★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★★</td>
+          </tr>
+          <tr>
+            <td>日常任务执行(Skill)</td>
+            <td class="star">★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★★</td>
+          </tr>
+          <tr>
+            <td>多平台覆盖</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★★</td>
+          </tr>
+          <tr>
+            <td>对话式交互体验</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★★</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">👥 目标用户覆盖对比</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>用户类型</th>
+            <th>克而瑞</th>
+            <th>明源云客</th>
+            <th>原圈科技</th>
+            <th>贝壳</th>
+            <th>旺小宝</th>
+            <th>我们的定位</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>集团管理层</td>
+            <td class="star">★★★★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★</td>
+          </tr>
+          <tr>
+            <td>区域营销负责人</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★★</td>
+          </tr>
+          <tr>
+            <td>案场销售经理</td>
+            <td class="star">★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★</td>
+            <td class="star">★★★★★</td>
+          </tr>
+          <tr>
+            <td>一线置业顾问</td>
+            <td class="star">★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★</td>
+            <td class="star">★★★★★</td>
+            <td class="star">★★★</td>
+            <td class="star">★★★★</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 第十节：竞争格局小结 ── -->
+  <div class="section" id="sec10">
+    <div class="section-header">
+      <div class="section-icon yellow">💡</div>
+      <div>
+        <div class="section-title">10 竞争格局小结与启示</div>
+        <div class="section-subtitle">核心发现与战略方向</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="swot-grid">
+      <div class="swot-card s">
+        <div class="swot-label">S</div>
+        <div class="swot-title">优势 Strengths</div>
+        <ul class="swot-list">
+          <li>克而瑞20年、明源海量案场、贝壳真实交易数据——数据积累是核心壁垒</li>
+          <li>TOP50房企占据78%的AI营销投入，马太效应推动行业加速智能化</li>
+          <li>垂直领域方案更具竞争力</li>
+        </ul>
+      </div>
+      <div class="swot-card w">
+        <div class="swot-label">W</div>
+        <div class="swot-title">劣势 Weaknesses</div>
+        <ul class="swot-list">
+          <li>现有产品多面向管理层，对一线销售经理场景覆盖不足</li>
+          <li>主动预警和推送能力普遍较弱</li>
+          <li>各平台产品分散，跨平台统一Agent解决方案缺失</li>
+        </ul>
+      </div>
+      <div class="swot-card o">
+        <div class="swot-label">O</div>
+        <div class="swot-title">机会 Opportunities</div>
+        <ul class="swot-list">
+          <li>一线销售经理场景是市场空白点</li>
+          <li>主动预警型Agent市场需求旺盛</li>
+          <li>多平台统一入口需求强烈</li>
+        </ul>
+      </div>
+      <div class="swot-card t">
+        <div class="swot-label">T</div>
+        <div class="swot-title">威胁 Threats</div>
+        <ul class="swot-list">
+          <li>头部玩家加大投入，价格战风险</li>
+          <li>技术同质化，差异化优势难保持</li>
+          <li>数据孤岛问题难以打通</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 24px;">
+      <div class="card-title">🎯 对本产品的战略启示</div>
+      <div class="grid-2">
+        <div class="highlight-box">
+          <h4>聚焦一线销售经理</h4>
+          <p>区别于克而瑞(管理层)、贝壳(经纪人)，专注案场销售经理的日常工作场景</p>
+        </div>
+        <div class="highlight-box">
+          <h4>强化主动能力</h4>
+          <p>构建主动预警、主动建议能力，从"被问到主动推"</p>
+        </div>
+        <div class="highlight-box">
+          <h4>封装Skill能力</h4>
+          <p>不仅能聊，还能帮做——营销计划、奖惩制度等任务执行</p>
+        </div>
+        <div class="highlight-box">
+          <h4>多平台统一入口</h4>
+          <p>独立App+企微+钉钉+飞书全覆盖，一站式触达</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第十一节：市场机会 ── -->
+  <div class="section" id="sec11">
+    <div class="section-header">
+      <div class="section-icon blue">🎯</div>
+      <div>
+        <div class="section-title">11 市场机会分析</div>
+        <div class="section-subtitle">市场空白点与差异化竞争策略</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🔍 市场空白点</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>空白点</th>
+            <th>现状描述</th>
+            <th>机会描述</th>
+            <th>优先级</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>主动预警型Agent</td>
+            <td>现有产品多为被动响应</td>
+            <td>主动发现风险、推送洞察的"案场军师"</td>
+            <td><span class="tag tag-red">高</span></td>
+          </tr>
+          <tr>
+            <td>多平台统一入口</td>
+            <td>各平台分散，数据不通</td>
+            <td>跨企微、钉钉、飞书的统一Agent</td>
+            <td><span class="tag tag-red">高</span></td>
+          </tr>
+          <tr>
+            <td>案场经理专属Agent</td>
+            <td>现有产品面向管理层或经纪人</td>
+            <td>聚焦销售经理日常工作场景</td>
+            <td><span class="tag tag-red">高</span></td>
+          </tr>
+          <tr>
+            <td>私有化部署+Agent</td>
+            <td>公有云多，私有化方案少</td>
+            <td>满足数据安全敏感型房企需求</td>
+            <td><span class="tag tag-orange">中</span></td>
+          </tr>
+          <tr>
+            <td>线下案场深度整合</td>
+            <td>线上能力强，线下场景弱</td>
+            <td>录音、工牌等案场硬件整合</td>
+            <td><span class="tag tag-orange">中</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">🎯 目标客户分层</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>客户层级</th>
+            <th>特征</th>
+            <th>核心需求</th>
+            <th>进入策略</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>头部房企(TOP100)</td>
+            <td>系统完善，数据丰富，预算充足</td>
+            <td>全流程AI Agent，私有化部署</td>
+            <td>战略合作，联合研发</td>
+          </tr>
+          <tr>
+            <td>大型房企(100-500)</td>
+            <td>有一定数据基础，数字化意识强</td>
+            <td>标准化+定制化Agent</td>
+            <td>标杆案例，批量复制</td>
+          </tr>
+          <tr>
+            <td>成长型房企(500+)</td>
+            <td>数据基础弱，人才有限</td>
+            <td>轻量化、快速见效的Agent</td>
+            <td>SaaS模式，敏捷交付</td>
+          </tr>
+          <tr>
+            <td>中小代理公司</td>
+            <td>资源有限，追求性价比</td>
+            <td>单点突破，高频刚需场景</td>
+            <td>标准化产品，低价切入</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 第十二节：风险分析 ── -->
+  <div class="section" id="sec12">
+    <div class="section-header">
+      <div class="section-icon red">⚠️</div>
+      <div>
+        <div class="section-title">12 风险分析</div>
+        <div class="section-subtitle">市场风险、技术风险与运营风险</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">📈 市场风险</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>风险类型</th>
+            <th>风险描述</th>
+            <th>概率</th>
+            <th>影响</th>
+            <th>应对策略</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>市场竞争加剧</td>
+            <td>头部玩家加大投入，价格战风险</td>
+            <td><span class="tag tag-red">高</span></td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td>差异化定位，聚焦垂直场景</td>
+          </tr>
+          <tr>
+            <td>市场需求不及预期</td>
+            <td>房企数字化预算收紧</td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td><span class="tag tag-red">高</span></td>
+            <td>聚焦高频刚需场景，证明ROI</td>
+          </tr>
+          <tr>
+            <td>技术窗口收窄</td>
+            <td>技术同质化，差异化优势难保持</td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td><span class="tag tag-red">高</span></td>
+            <td>持续创新，建立数据壁垒</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">⚙️ 技术风险</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>风险类型</th>
+            <th>风险描述</th>
+            <th>概率</th>
+            <th>影响</th>
+            <th>应对策略</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>数据孤岛难以打通</td>
+            <td>房企内部系统复杂，数据整合难度大</td>
+            <td><span class="tag tag-red">高</span></td>
+            <td><span class="tag tag-red">高</span></td>
+            <td>轻量化接入，渐进式整合</td>
+          </tr>
+          <tr>
+            <td>大模型能力不足</td>
+            <td>复杂场景理解与推理能力有限</td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td>垂直领域微调，优化Prompt</td>
+          </tr>
+          <tr>
+            <td>多平台适配成本高</td>
+            <td>各平台API差异大，开发维护成本高</td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td>抽象平台层，统一适配接口</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">🚀 运营风险</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>风险类型</th>
+            <th>风险描述</th>
+            <th>概率</th>
+            <th>影响</th>
+            <th>应对策略</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>复合型人才短缺</td>
+            <td>既懂地产又懂AI的人才难招</td>
+            <td><span class="tag tag-red">高</span></td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td>建立内部培养体系</td>
+          </tr>
+          <tr>
+            <td>客户期望管理</td>
+            <td>AI能力被过度宣传，实际效果不及预期</td>
+            <td><span class="tag tag-orange">中</span></td>
+            <td><span class="tag tag-red">高</span></td>
+            <td>务实宣传，设置合理KPI</td>
+          </tr>
+          <tr>
+            <td>数据安全隐患</td>
+            <td>客户数据泄露风险</td>
+            <td><span class="tag tag-green">低</span></td>
+            <td><span class="tag tag-red">极高</span></td>
+            <td>私有化部署，安全合规认证</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 第十三节：战略建议 ── -->
+  <div class="section" id="sec13">
+    <div class="section-header">
+      <div class="section-icon teal">💡</div>
+      <div>
+        <div class="section-title">13 战略建议</div>
+        <div class="section-subtitle">产品战略、技术战略、市场战略与组织战略</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🎯 产品战略建议</div>
+      <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+        <li style="margin-bottom: 10px;"><strong>MVP快速验证：</strong>选择高频、刚需、有数据的场景作为切入点，3个月内完成MVP并获取种子用户反馈</li>
+        <li style="margin-bottom: 10px;"><strong>垂直场景深耕：</strong>聚焦"数据洞察"和"报告生成"两个核心场景，打透打穿，形成差异化壁垒</li>
+        <li style="margin-bottom: 10px;"><strong>Skill能力封装：</strong>将高频任务封装为独立Skill，如"市场分析Skill"、"营销计划Skill"、"竞品分析Skill"</li>
+        <li style="margin-bottom: 10px;"><strong>主动能力构建：</strong>重点构建主动预警和主动推送能力，区别于被动响应的传统助手</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">⚙️ 技术战略建议</div>
+      <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+        <li style="margin-bottom: 10px;"><strong>数据基座优先：</strong>将数据治理视为"一号工程"，优先解决数据孤岛问题，建立可信数据底座</li>
+        <li style="margin-bottom: 10px;"><strong>混合部署架构：</strong>支持公有云和私有化部署，满足不同客户的数据安全需求</li>
+        <li style="margin-bottom: 10px;"><strong>平台抽象层：</strong>构建统一的平台适配层，支持独立App、企微、钉钉、飞书等多端接入</li>
+        <li style="margin-bottom: 10px;"><strong>持续学习优化：</strong>建立用户反馈闭环，持续优化模型效果，实现产品的动态进化</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">🚀 市场战略建议</div>
+      <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+        <li style="margin-bottom: 10px;"><strong>标杆客户策略：</strong>优先攻占1-2家头部房企，打造标杆案例，借助口碑传播</li>
+        <li style="margin-bottom: 10px;"><strong>生态合作策略：</strong>与明源云、克而瑞等建立合作，借助其渠道快速覆盖客户</li>
+        <li style="margin-bottom: 10px;"><strong>ROI承诺策略：</strong>提供明确的ROI承诺，如"转化率提升15%"或"人力成本降低30%"</li>
+        <li style="margin-bottom: 10px;"><strong>场景营销策略：</strong>围绕"案场军师"定位，通过场景化内容营销建立专业认知</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── 第十四节：产品运营规划 ── -->
+  <div class="section" id="sec14">
+    <div class="section-header">
+      <div class="section-icon green">📊</div>
+      <div>
+        <div class="section-title">14 产品运营规划</div>
+        <div class="section-subtitle">运营目标、用户增长与客户成功</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🎯 运营目标与核心指标</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>阶段</th>
+            <th>时间节点</th>
+            <th>核心目标</th>
+            <th>关键指标(KPI)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>打磨期</strong></td>
+            <td>第1-3个月</td>
+            <td>MVP验证，种子用户获取</td>
+            <td>注册用户≥100，DAU≥30，周留存≥40%</td>
+          </tr>
+          <tr>
+            <td><strong>成长期</strong></td>
+            <td>第4-6个月</td>
+            <td>标杆案例打造，市场验证</td>
+            <td>付费客户≥10，NPS≥50，续费≥80%</td>
+          </tr>
+          <tr>
+            <td><strong>扩张期</strong></td>
+            <td>第7-12个月</td>
+            <td>规模化推广，品牌建立</td>
+            <td>付费客户≥50，ARR≥500万，行业覆盖率≥10%</td>
+          </tr>
+          <tr>
+            <td><strong>成熟期</strong></td>
+            <td>第13-24个月</td>
+            <td>市场领先地位确立</td>
+            <td>TOP100房企覆盖率≥30%，细分市场占有率≥15%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">📈 用户增长策略</div>
+      <div class="grid-2">
+        <div>
+          <div class="highlight-box" style="background: #f0fdf4; border-color: #10b981;">
+            <h4 style="color: #065f46;">获客渠道</h4>
+            <p>行业展会、微信公众号、知乎、行业媒体、行业协会</p>
+          </div>
+          <div class="highlight-box" style="background: #eff6ff; border-color: #1a6ff4;">
+            <h4 style="color: #1e40af;">用户激活</h4>
+            <p>3步快速上手引导、场景推送、价值展示(3秒生成日报)</p>
+          </div>
+        </div>
+        <div>
+          <div class="highlight-box" style="background: #fef9c3; border-color: #eab308;">
+            <h4 style="color: #92400e;">用户留存</h4>
+            <p>周报推送、主动预警、功能迭代(每月2次)</p>
+          </div>
+          <div class="highlight-box" style="background: #fdf4ff; border-color: #8b5cf6;">
+            <h4 style="color: #5b21b6;">用户裂变</h4>
+            <p>推荐奖励、案例共享、生态联动</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第十五节：商业化规划 ── -->
+  <div class="section" id="sec15">
+    <div class="section-header">
+      <div class="section-icon purple">💰</div>
+      <div>
+        <div class="section-title">15 产品商业化规划</div>
+        <div class="section-subtitle">商业模式、定价策略与盈利预测</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">💵 商业模式设计</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>收入类型</th>
+            <th>收入来源</th>
+            <th>定价策略</th>
+            <th>收入占比目标</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SaaS订阅费</td>
+            <td>基础Agent服务，按席位/案场收费</td>
+            <td>4,800-19,800元/年/席位</td>
+            <td><strong>60%</strong></td>
+          </tr>
+          <tr>
+            <td>增值服务费</td>
+            <td>高级Skill包、私有化部署、定制开发</td>
+            <td>按项目定价，5-50万/项目</td>
+            <td><strong>25%</strong></td>
+          </tr>
+          <tr>
+            <td>数据服务费</td>
+            <td>行业数据订阅、竞品监测报告</td>
+            <td>1,200-3,600元/年</td>
+            <td><strong>10%</strong></td>
+          </tr>
+          <tr>
+            <td>培训认证费</td>
+            <td>产品培训、认证考试、企业内训</td>
+            <td>2,000-5,000元/人</td>
+            <td><strong>5%</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">📋 定价策略</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>版本</th>
+            <th>适用客户</th>
+            <th>功能范围</th>
+            <th>价格(年费)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background: rgba(245, 158, 11, 0.08);">
+            <td><strong>体验版</strong></td>
+            <td>小型案场、初次体验</td>
+            <td>基础问答、数据看板</td>
+            <td><strong style="color: #10b981;">免费</strong></td>
+          </tr>
+          <tr style="background: rgba(59, 130, 246, 0.08);">
+            <td><strong>标准版</strong></td>
+            <td>成长型房企、中型案场</td>
+            <td>全功能Agent、10+基础Skill</td>
+            <td><strong>4,800元/席位</strong></td>
+          </tr>
+          <tr style="background: rgba(139, 92, 246, 0.08);">
+            <td><strong>专业版</strong></td>
+            <td>大型房企、多个案场</td>
+            <td>高级Agent、30+Skill、高级分析</td>
+            <td><strong>12,800元/席位</strong></td>
+          </tr>
+          <tr style="background: rgba(26, 111, 244, 0.08);">
+            <td><strong>企业版</strong></td>
+            <td>TOP100房企集团</td>
+            <td>全功能定制，品牌定制、专属服务</td>
+            <td><strong>19,800元/席位起</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">📊 盈利预测</div>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>财务指标</th>
+            <th>第1年</th>
+            <th>第2年</th>
+            <th>第3年</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>付费客户数</td>
+            <td>15-20家</td>
+            <td>50-80家</td>
+            <td>120-200家</td>
+          </tr>
+          <tr>
+            <td>累计席位数</td>
+            <td>100-150</td>
+            <td>400-600</td>
+            <td>1200-2000</td>
+          </tr>
+          <tr>
+            <td><strong>ARR</strong></td>
+            <td><strong style="color: #10b981;">150-300万</strong></td>
+            <td><strong style="color: #10b981;">500-1000万</strong></td>
+            <td><strong style="color: #10b981;">1500-3000万</strong></td>
+          </tr>
+          <tr>
+            <td>毛利率</td>
+            <td>65-70%</td>
+            <td>70-75%</td>
+            <td>75-80%</td>
+          </tr>
+          <tr>
+            <td>净利润率</td>
+            <td>-30%~-20%</td>
+            <td>-10%~0%</td>
+            <td>10-20%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">🏆 单元经济学模型</div>
+      <div class="rating-row">
+        <span class="rating-label">CAC(获客成本)</span>
+        <div class="rating-bar-bg"><div class="rating-bar" style="width: 65%; background: linear-gradient(90deg, #ef4444, #f87171);"></div></div>
+        <span class="rating-score">1万</span>
+      </div>
+      <div class="rating-row">
+        <span class="rating-label">LTV(用户生命周期)</span>
+        <div class="rating-bar-bg"><div class="rating-bar" style="width: 50%; background: linear-gradient(90deg, #10b981, #34d399);"></div></div>
+        <span class="rating-score">4万</span>
+      </div>
+      <div class="rating-row">
+        <span class="rating-label">LTV/CAC比值</span>
+        <div class="rating-bar-bg"><div class="rating-bar" style="width: 80%; background: linear-gradient(90deg, #10b981, #34d399);"></div></div>
+        <span class="rating-score">4x</span>
+      </div>
+      <div class="rating-row">
+        <span class="rating-label">CAC回收期</span>
+        <div class="rating-bar-bg"><div class="rating-bar" style="width: 70%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div></div>
+        <span class="rating-score">10月</span>
+      </div>
+      <div class="rating-row">
+        <span class="rating-label">续费率</span>
+        <div class="rating-bar-bg"><div class="rating-bar" style="width: 80%; background: linear-gradient(90deg, #10b981, #34d399);"></div></div>
+        <span class="rating-score">80%</span>
+      </div>
+    </div>
+
+    <div class="callout success" style="margin-top: 20px;">
+      <strong>🛡️ 竞争护城河构建：</strong>数据壁垒（案场场景专有数据）→ 知识壁垒（房地产营销专业知识库）→ 场景壁垒（深度绑定案场经理工作场景）→ 服务壁垒（专业客户成功体系）→ 品牌壁垒（"案场军师"品牌认知）
+    </div>
+  </div>
+
+  <!-- 综合结论 -->
+  <div class="summary-box" style="margin-top: 40px;">
+    <h3>🔍 研究结论</h3>
+    <p>房地产案场智能 Agent 助手市场正处于爆发前夕，技术成熟、政策利好、需求旺盛三重因素叠加，为产品入场提供了最佳时间窗口。</p>
+    <p>核心机会在于：<strong>一线销售经理场景的深度覆盖</strong>、<strong>主动预警能力的差异化构建</strong>、<strong>多平台统一入口的全方位覆盖</strong>。通过"案场军师"的产品定位，打造真正懂地产、懂销售、懂经理的AI伙伴。</p>
+    <p>预计第1年ARR 150-300万，第2年500-1000万，第3年1500-3000万，三年内成为细分市场领先者。</p>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<div class="report-footer">
+  <strong>房地产案场智能 Agent 助手</strong> · 市场与竞品分析报告 · 2026年4月
+</div>
+
+<script>
+  // 平滑滚动
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        window.scrollTo({
+          top: target.offsetTop - 20,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
