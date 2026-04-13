@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>腾讯 ima 深度研究报告</title>
+  <style>
+    :root {
+      --primary: #1a6ff4;
+      --primary-light: #e8f0fe;
+      --accent: #0ea5e9;
+      --dark: #0f172a;
+      --gray-900: #1e293b;
+      --gray-700: #334155;
+      --gray-500: #64748b;
+      --gray-300: #cbd5e1;
+      --gray-100: #f1f5f9;
+      --white: #ffffff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --teal: #14b8a6;
+      --orange: #f97316;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: var(--gray-900);
+      line-height: 1.7;
+    }
+
+    /* ── Header ── */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1a6ff4 100%);
+      padding: 80px 0 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    }
+    .hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 24px;
+      backdrop-filter: blur(8px);
+    }
+    .hero-badge .dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .hero h1 span { color: #60a5fa; }
+    .hero-sub {
+      font-size: 18px;
+      color: rgba(255,255,255,0.7);
+      max-width: 600px;
+      margin-bottom: 40px;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+    }
+    .hero-meta-item svg { opacity: 0.7; }
+
+    /* ── Layout ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    .report-body { padding: 56px 0; }
+
+    /* ── Table of Contents ── */
+    .toc {
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 48px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .toc h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 32px;
+    }
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--primary);
+      text-decoration: none;
+      padding: 4px 0;
+      transition: color 0.2s;
+    }
+    .toc-item:hover { color: var(--accent); }
+    .toc-num {
+      width: 22px;
+      height: 22px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 64px; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .section-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .section-icon.blue { background: #dbeafe; }
+    .section-icon.green { background: #d1fae5; }
+    .section-icon.purple { background: #ede9fe; }
+    .section-icon.orange { background: #ffedd5; }
+    .section-icon.teal { background: #ccfbf1; }
+    .section-icon.red { background: #fee2e2; }
+    .section-icon.yellow { background: #fef9c3; }
+    .section-icon.pink { background: #fce7f3; }
+
+    .section-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--gray-500);
+      margin-top: 4px;
+    }
+
+    .section-divider {
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
+      border-radius: 2px;
+      margin-bottom: 28px;
+      width: 60px;
+    }
+
+    /* ── Prose ── */
+    .prose p { color: var(--gray-700); margin-bottom: 16px; font-size: 15.5px; }
+    .prose p:last-child { margin-bottom: 0; }
+
+    /* ── Info Cards ── */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-weight: 600;
+    }
+    .tag-blue { background: var(--primary-light); color: var(--primary); }
+    .tag-green { background: #d1fae5; color: #065f46; }
+    .tag-orange { background: #ffedd5; color: #9a3412; }
+    .tag-purple { background: #ede9fe; color: #5b21b6; }
+    .tag-teal { background: #ccfbf1; color: #0f766e; }
+
+    /* ── Grid Layouts ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+    /* ── Timeline ── */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 2px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -28px;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    .timeline-date {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 100px;
+      margin-bottom: 6px;
+    }
+    .timeline-content {
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 14.5px;
+      color: var(--gray-700);
+    }
+    .timeline-content strong { color: var(--dark); }
+
+    /* ── Feature Pills ── */
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: 14px;
+      padding: 20px;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      box-shadow: 0 4px 16px rgba(26,111,244,0.1);
+      transform: translateY(-2px);
+    }
+    .feature-icon { font-size: 28px; margin-bottom: 10px; }
+    .feature-name { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+    .feature-desc { font-size: 13.5px; color: var(--gray-500); line-height: 1.6; }
+
+    /* ── Scenario Cards ── */
+    .scenario-card {
+      background: var(--white);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+    }
+    .scenario-header {
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .scenario-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+    }
+    .scenario-title { font-size: 17px; font-weight: 700; color: var(--dark); }
+    .scenario-tag { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+    .scenario-body { padding: 0 24px 20px; }
+    .scenario-body ul { padding-left: 20px; }
+    .scenario-body ul li {
+      font-size: 14.5px;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+      line-height: 1.6;
+    }
+
+    /* ── Tips Box ── */
+    .tip-box {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .tip-box .tip-header {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tip-box .tip-content { font-size: 14px; color: #1e40af; line-height: 1.7; }
+    .tip-box code {
+      background: rgba(26,111,244,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+    }
+
+    /* ── Comparison Table ── */
+    .compare-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04); }
+    .compare-table thead tr { background: var(--dark); }
+    .compare-table th {
+      padding: 14px 18px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      text-align: left;
+    }
+    .compare-table th:first-child { border-radius: 14px 0 0 0; }
+    .compare-table th:last-child { border-radius: 0 14px 0 0; }
+    .compare-table td {
+      padding: 13px 18px;
+      font-size: 14px;
+      color: var(--gray-700);
+      border-bottom: 1px solid var(--gray-100);
+      background: var(--white);
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:last-child td:first-child { border-radius: 0 0 0 14px; }
+    .compare-table tr:last-child td:last-child { border-radius: 0 0 14px 0; }
+    .compare-table tbody tr:hover td { background: #f8fafc; }
+    .star { color: #f59e0b; }
+    .half-star { color: #d1d5db; }
+
+    /* ── SWOT ── */
+    .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .swot-card { border-radius: 14px; padding: 22px; }
+    .swot-card.s { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+    .swot-card.w { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+    .swot-card.o { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+    .swot-card.t { background: linear-gradient(135deg, #fef9c3, #fde68a); }
+    .swot-label {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+    .swot-card.s .swot-label { color: #065f46; }
+    .swot-card.w .swot-label { color: #991b1b; }
+    .swot-card.o .swot-label { color: #1e40af; }
+    .swot-card.t .swot-label { color: #92400e; }
+    .swot-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .swot-card.s .swot-title { color: #065f46; }
+    .swot-card.w .swot-title { color: #991b1b; }
+    .swot-card.o .swot-title { color: #1e40af; }
+    .swot-card.t .swot-title { color: #92400e; }
+    .swot-list { list-style: none; }
+    .swot-list li {
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin-bottom: 6px;
+      padding-left: 16px;
+      position: relative;
+    }
+    .swot-list li::before {
+      content: '·';
+      position: absolute;
+      left: 4px;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+    .swot-card.s .swot-list li { color: #064e3b; }
+    .swot-card.w .swot-list li { color: #7f1d1d; }
+    .swot-card.o .swot-list li { color: #1e3a8a; }
+    .swot-card.t .swot-list li { color: #78350f; }
+
+    /* ── User Profile ── */
+    .user-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--gray-300);
+      text-align: center;
+    }
+    .user-avatar { font-size: 36px; margin-bottom: 8px; }
+    .user-type { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+    .user-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 10px; }
+    .user-tag {
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 100px;
+      background: var(--gray-100);
+      color: var(--gray-500);
+      font-weight: 500;
+    }
+    .user-desc { font-size: 13px; color: var(--gray-500); line-height: 1.6; }
+
+    /* ── Summary ── */
+    .summary-box {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      border-radius: 20px;
+      padding: 40px;
+      color: white;
+    }
+    .summary-box h3 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+    .summary-box p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+    .summary-box p:last-child { margin-bottom: 0; }
+
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .rating-label { font-size: 14px; color: var(--gray-700); width: 120px; flex-shrink: 0; }
+    .rating-bar-bg { flex: 1; height: 8px; background: var(--gray-100); border-radius: 100px; overflow: hidden; }
+    .rating-bar { height: 100%; border-radius: 100px; }
+    .rating-score { font-size: 13px; font-weight: 700; color: var(--gray-700); width: 32px; text-align: right; }
+
+    /* ── Footer ── */
+    .report-footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 28px;
+      font-size: 13px;
+    }
+    .report-footer strong { color: rgba(255,255,255,0.8); }
+
+    /* ── Callout ── */
+    .callout {
+      border-left: 4px solid;
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      font-size: 14.5px;
+    }
+    .callout.info { background: #eff6ff; border-color: var(--primary); color: #1e40af; }
+    .callout.success { background: #ecfdf5; border-color: var(--success); color: #065f46; }
+    .callout.warning { background: #fffbeb; border-color: var(--warning); color: #92400e; }
+
+    /* ── Step Box ── */
+    .step-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-top: 16px;
+    }
+    .step-box-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-list { display: flex; flex-direction: column; gap: 10px; }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--gray-700);
+      line-height: 1.65;
+    }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 32px; }
+      .grid-2, .grid-3, .swot-grid, .toc-grid { grid-template-columns: 1fr; }
+      .compare-table { font-size: 12px; }
+      .compare-table th, .compare-table td { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      全网资料汇编 · 深度研究报告
+    </div>
+    <h1>腾讯 <span>ima</span><br>深度研究报告</h1>
+    <p class="hero-sub">基于知乎、今日头条、微信公众号、什么值得买、人人都是产品经理等平台内容汇总分析，全面解析 AI 知识管理新范式</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        2026年4月 · 综合研报
+      </div>
+      <div class="hero-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        覆盖 8+ 主流媒体平台
+      </div>
+      <div class="hero-meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        多元用户视角汇聚
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ BODY ══════════ -->
+<div class="report-body">
+<div class="container">
+
+  <!-- 目录 -->
+  <div class="toc">
+    <h3>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      目录
+    </h3>
+    <div class="toc-grid">
+      <a href="#sec1" class="toc-item"><span class="toc-num">01</span>产品概述与背景</a>
+      <a href="#sec2" class="toc-item"><span class="toc-num">02</span>发展历程与版本迭代</a>
+      <a href="#sec3" class="toc-item"><span class="toc-num">03</span>核心功能全景</a>
+      <a href="#sec4" class="toc-item"><span class="toc-num">04</span>十大核心使用场景</a>
+      <a href="#sec5" class="toc-item"><span class="toc-num">05</span>高阶使用技巧</a>
+      <a href="#sec6" class="toc-item"><span class="toc-num">06</span>特色玩法与创新用法</a>
+      <a href="#sec7" class="toc-item"><span class="toc-num">07</span>高频认可使用案例</a>
+      <a href="#sec8" class="toc-item"><span class="toc-num">08</span>生态联动使用场景</a>
+      <a href="#sec9" class="toc-item"><span class="toc-num">09</span>适合的用户画像</a>
+      <a href="#sec10" class="toc-item"><span class="toc-num">10</span>竞品横向对比</a>
+      <a href="#sec11" class="toc-item"><span class="toc-num">11</span>SWOT 综合分析</a>
+      <a href="#sec12" class="toc-item"><span class="toc-num">12</span>综合评分与总结</a>
+    </div>
+  </div>
+
+  <!-- ── 第一节 ── -->
+  <div class="section" id="sec1">
+    <div class="section-header">
+      <div class="section-icon blue">🌐</div>
+      <div>
+        <div class="section-title">01 产品概述与背景</div>
+        <div class="section-subtitle">它到底是什么，解决了什么问题？</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="prose">
+      <p>腾讯 ima（ima.copilot）是腾讯于 2024 年 10 月 25 日正式推出的 <strong>AI 智能工作台</strong>，官方定位为"以知识库为核心的智能工作台"，核心口号为"智慧因你而生"。</p>
+      <p>它诞生于一个特定的信息焦虑时代——每天我们接收海量内容：公众号、知乎长文、行业报告、会议纪要……它们或吃灰于收藏夹，或消散于记忆，难以复用。ima 以 AI 为引擎，以知识库为容器，试图构建一个真正意义上的"<strong>第二大脑</strong>"。</p>
+    </div>
+
+    <div class="grid-2" style="margin-top: 24px;">
+      <div class="card">
+        <div class="card-title">🎯 核心定位</div>
+        <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+          <li style="margin-bottom: 8px;">解决<strong>信息碎片化</strong>：汇聚各渠道内容</li>
+          <li style="margin-bottom: 8px;">解决<strong>收藏即吃灰</strong>：结构化知识管理</li>
+          <li style="margin-bottom: 8px;">解决<strong>知识难复用</strong>：AI 精准检索与问答</li>
+          <li style="margin-bottom: 8px;">解决<strong>创作效率低</strong>：知识库驱动 AI 写作</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">🔧 技术底座</div>
+        <ul style="padding-left: 20px; font-size: 14.5px; color: var(--gray-700);">
+          <li style="margin-bottom: 8px;"><strong>RAG 技术</strong>：检索增强生成，答案可溯源</li>
+          <li style="margin-bottom: 8px;"><strong>腾讯混元</strong>：通用问答，联网实时搜索</li>
+          <li style="margin-bottom: 8px;"><strong>DeepSeek-R1</strong>：深度推理，复杂任务分析</li>
+          <li style="margin-bottom: 8px;"><strong>混元 T1</strong>：强逻辑推理，重难点问题</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top: 16px;">
+      <strong>📌 产品本质：</strong>ima 并非单一 AI 聊天工具，而是将"存储→解析→索引→调用→生成→共享"形成完整闭环的知识操作系统。与微信生态的深度融合是其区别于 Notion、Obsidian 等海外工具的核心护城河。
+    </div>
+  </div>
+
+  <!-- ── 第二节 ── -->
+  <div class="section" id="sec2">
+    <div class="section-header">
+      <div class="section-icon teal">📅</div>
+      <div>
+        <div class="section-title">02 发展历程与版本迭代</div>
+        <div class="section-subtitle">从 Mac 单端到四端全覆盖，快速进化</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-date">2024.10.25</div>
+        <div class="timeline-content"><strong>Mac 端首发</strong> — 上线基础文档解析、AI 摘要、AI 搜索、知识库雏形；首日即引发科技圈关注，被媒体称为"腾讯的 Copilot"</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2024.11.17</div>
+        <div class="timeline-content"><strong>Windows 端上线</strong> — 仅 23 天后覆盖双端；支持拖拽文档自动启动解读</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2024.12.28</div>
+        <div class="timeline-content"><strong>共享知识库 + 微信小程序</strong> — 首次支持多人协作，微信生态正式打通；移动端可一键导入聊天文件</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2025.02.11</div>
+        <div class="timeline-content"><strong>接入 DeepSeek-R1</strong> — 完成双模型架构，深度推理能力大幅提升；"知识库+R1"组合引爆用户讨论</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2025.02.20</div>
+        <div class="timeline-content"><strong>移动端 App 正式上线</strong> — iOS + Android 双端发布；实现 Windows/Mac/小程序/App 四端数据同步；免费空间提升至 2GB</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2025.03</div>
+        <div class="timeline-content"><strong>知识库广场 + 知识号上线</strong> — 共享知识库可公开发布，成员上限 100 万；个人云存储提升至 30GB；知识号开启知识 IP 化</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2025.04～05</div>
+        <div class="timeline-content"><strong>知识库深度升级</strong> — 打通公众号菜单栏、多级文件夹、标签视图、收藏夹、@知识库精准提问功能上线</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2025.07</div>
+        <div class="timeline-content"><strong>v1.9.x 系列</strong> — PDF 双语对照翻译、混元 T1 接入、长图分享、笔记上传、移动端语音输入等功能陆续落地</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2025.10.27</div>
+        <div class="timeline-content"><strong>ima 2.0 发布</strong> — 融合 Agent 智能体能力，上线"任务模式"，支持一句话自动生成报告、播客等</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2026.01～02</div>
+        <div class="timeline-content"><strong>企业级能力强化</strong> — 团队协作支持 200 人并发；免费存储空间提升至 50GB；浏览器插件上线</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第三节 ── -->
+  <div class="section" id="sec3">
+    <div class="section-header">
+      <div class="section-icon purple">⚡</div>
+      <div>
+        <div class="section-title">03 核心功能全景</div>
+        <div class="section-subtitle">五大能力矩阵，覆盖完整知识工作流</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📥</div>
+        <div class="feature-name">多模态知识沉淀</div>
+        <div class="feature-desc">支持 19 种文件格式（PDF、Word、PPT、Markdown、图片、音频等）；微信生态一键导入；网页剪藏；手动笔记录入</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <div class="feature-name">智能文档解析</div>
+        <div class="feature-desc">自动生成摘要、思维导图；支持多轮精读追问；跨文档交叉对比；OCR 图片文字识别</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <div class="feature-name">双引擎 AI 问答</div>
+        <div class="feature-desc">私域知识库问答（答案溯源原文）+ 全网搜索；混元通用 / DeepSeek 深度推理 / 混元 T1 逻辑推理三模型可切换</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✍️</div>
+        <div class="feature-name">AI 内容创作</div>
+        <div class="feature-desc">多场景写作模板（论文/报告/文案等）；支持扩写、续写、润色；"/" 唤醒 AI 辅助；PDF 双语翻译</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <div class="feature-name">团队协作共享</div>
+        <div class="feature-desc">共享知识库（权限分级：编辑/查看/问答）；知识库广场公开发布；知识号 IP 打造；200 人并发协作</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-name">Agent 任务模式</div>
+        <div class="feature-desc">（2.0 新增）一句话自动完成报告生成、播客制作；主动执行复杂多步骤任务；支持 PPT、音频等多模态输出</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗂️</div>
+        <div class="feature-name">知识库管理系统</div>
+        <div class="feature-desc">多级文件夹分类；自定义标签体系；收藏夹功能；文件重命名；按上传时间/主题筛选排序</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-name">微信生态深融合</div>
+        <div class="feature-desc">公众号文章一键存入；知识库接入公众号菜单栏；微信小程序移动访问；聊天文件直接导入</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第四节 ── -->
+  <div class="section" id="sec4">
+    <div class="section-header">
+      <div class="section-icon orange">🎯</div>
+      <div>
+        <div class="section-title">04 十大核心使用场景（含操作步骤）</div>
+        <div class="section-subtitle">每个场景附完整使用流程，开箱即用</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #eff6ff, #dbeafe);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #3b82f6, #1a6ff4);">01</div>
+        <div>
+          <div class="scenario-title">🎓 学术研究 & 文献管理</div>
+          <div class="scenario-tag">学生 · 研究人员 | 最高频场景之一</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>上传 10～50 篇英文论文 PDF，通过 AI 自动生成研究综述，原本半个月的工作半天完成</li>
+          <li>提问"这批论文中哪些研究方法存在争议？"，AI 跨文档对比分析，精准引用出处</li>
+          <li>考研备考：建立"考研资料库"，导入复习材料，用自然语言问答代替死记硬背</li>
+          <li>论文写作：上传参考文献知识库，写作时 @知识库 引用资料，避免信息来源混乱</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 详细操作步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>建库</strong>：登录 ima.qq.com → 点击「新建知识库」→ 命名为"[课题名]文献库"，选择私密</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>导入文献</strong>：点击「上传文件」→ 批量拖拽 PDF → 等待 AI 自动解析（通常 1-3 分钟/篇）</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>生成综述</strong>：在对话框输入：<code>@[库名] 基于这批论文，按研究方法/结论/研究缺口三个维度，生成文献综述框架</code></div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>深度追问</strong>：选择 DeepSeek-R1 模型 → 追问"第3篇论文的实验设计有何局限性？与第7篇的结论是否矛盾？"</div></div>
+            <div class="step-item"><span class="step-num">5</span><div><strong>导出结果</strong>：点击回答右下角「导出」→ 选择「导出到腾讯文档」→ 自动生成 Word 格式文件</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #ecfdf5, #d1fae5);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #10b981, #059669);">02</div>
+        <div>
+          <div class="scenario-title">💼 职场效率 & 行业研究</div>
+          <div class="scenario-tag">运营 · 产品 · 分析师 | 效率提升 5x</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>上传 10 份竞品行业报告，提问"竞品策略对比"，AI 自动生成对比表格</li>
+          <li>会议录音 → 转文字 → AI 提取待办事项 → 自动同步协作库，全程自动化</li>
+          <li>工作总结：导入季度数据和汇报材料，AI 生成结构化总结报告</li>
+          <li>日常文案：基于品牌资料库，AI 批量生成风格统一的推广文案</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 行业研报分析步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>收集素材</strong>：在微信中收到的行业报告 PDF → 长按文件 → 选择「用ima打开」→ 自动存入知识库</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>网页收藏</strong>：安装 ima 浏览器插件 → 浏览竞品文章时点击「熊猫」图标 → 一键收藏到指定知识库</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>批量分析</strong>：输入 <code>@行业研究库 对比这5家竞品在用户增长、变现模式、技术壁垒三个维度的差异，用表格呈现</code></div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>生成报告</strong>：任务模式 → 选择「生成报告」→ 填写主题和知识库来源 → 等待 AI 自动输出完整研究报告</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #fdf4ff, #f3e8ff);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #a855f7, #7c3aed);">03</div>
+        <div>
+          <div class="scenario-title">📱 微信内容整理 & 公众号管理</div>
+          <div class="scenario-tag">微信重度用户 | ima 核心差异化场景</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>一键将看到的公众号文章存入知识库，告别"收藏即吃灰"</li>
+          <li>访问 500 万+ 公众号内容，形成最大微信内容搜索引擎</li>
+          <li>公众号运营者：将知识库接入公众号菜单栏，为粉丝提供 AI 问答服务</li>
+          <li>聊天文件（PDF 合同、图片资料）直接从微信对话导入知识库</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 公众号文章一键入库步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>打开文章</strong>：在微信中打开目标公众号文章</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>保存入库</strong>：点击右上角「···」→ 选择「保存到ima知识库」→ AI 自动提取关键词并归档</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>微信文件入库</strong>：聊天中长按 PDF/Word/图片 → 选择「用ima打开」→ 自动 OCR 解析并入库（图片自动识别文字）</div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>小程序使用</strong>：微信搜索「ima知识库」小程序 → 点击右上角「导入」→ 选择「微信文件」即可导入聊天文件</div></div>
+            <div class="step-item"><span class="step-num">5</span><div><strong>智能整理</strong>：入库后输入 <code>对最近一周入库的内容按主题分类，并用100字概括每类的核心观点</code></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #fff7ed, #ffedd5);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #f97316, #ea580c);">04</div>
+        <div>
+          <div class="scenario-title">✍️ 内容创作 & 自媒体运营</div>
+          <div class="scenario-tag">博主 · 编辑 · KOL | 创作效率核心工具</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>建立"选题资料库"，收藏各平台优质内容，AI 自动提炼角度和洞察</li>
+          <li>导入竞品爆文，分析选题规律、标题结构、内容框架</li>
+          <li>基于知识库生成小红书、公众号、知乎不同风格的文案变体</li>
+          <li>知识博主：通过"知识号"打造专属知识主页，快速产出短视频脚本</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 AI 播客 / 报告自动生成步骤（任务模式）</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>开通任务模式</strong>：ima 官网申请任务模式内测权限（目前需申请，审核后开放）</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>进入任务模式</strong>：登录 ima → 左侧菜单选择「任务」→ 点击「新建任务」</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>选择输出类型</strong>：选择「生成报告」或「生成播客」或「制作PPT」</div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>填写信息</strong>：输入主题（如"AI Agent 商业化落地"）→ 选择关联知识库 → 添加附件资料（可选）</div></div>
+            <div class="step-item"><span class="step-num">5</span><div><strong>等待生成</strong>：约 10 分钟后，系统自动输出专业报告/可下载的播客音频/可下载的 PPT 文件</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #f0fdfa, #ccfbf1);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">05</div>
+        <div>
+          <div class="scenario-title">⚖️ 专业人士知识沉淀</div>
+          <div class="scenario-tag">律师 · 医生 · 教师 · 咨询顾问</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>律师：上传案件资料、法律法规、类案判决，快速梳理裁判规则和辩护策略</li>
+          <li>教师：建立课程资料库，AI 自动生成教案、课件提纲、习题</li>
+          <li>咨询顾问：共建项目知识库，沉淀行业经验，新人快速接手项目</li>
+          <li>医疗从业者：文献库 + 病案积累，辅助临床决策参考</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 律师案件知识库搭建步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>建立案件库</strong>：新建私密知识库「[客户名]案件资料库」→ 上传起诉书、证据材料、相关法条 PDF</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>录音转文字</strong>：将客户访谈录音上传 → AI 自动识别并转为文字 → 提取关键证据要素和时间轴</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>类案检索</strong>：输入 <code>@案件资料库 结合本案事实，检索类似合同纠纷的判决规律，归纳胜诉关键因素</code></div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>共享给团队</strong>：点击「共享知识库」→ 邀请律所同事加入 → 设置「仅查看+问答」权限保护核心资料</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #fef2f2, #fee2e2);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #ef4444, #dc2626);">06</div>
+        <div>
+          <div class="scenario-title">🏢 团队协作 & 企业知识管理</div>
+          <div class="scenario-tag">产品团队 · 初创公司 · 中小企业</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>产品文档、需求说明、会议纪要统一入库，告别 Wiki 散乱</li>
+          <li>新员工入职：直接对话知识库，自助查阅历史决策和项目背景</li>
+          <li>技术团队：代码规范、架构文档入库，AI 辅助代码审查和技术方案输出</li>
+          <li>权限分级管理（编辑/查看/问答），控制敏感信息流转</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 企业 Wiki 知识库搭建步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>创建共享库</strong>：点击「新建共享知识库」→ 填写名称、封面描述 → 设置权限（私密/成员可见）</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>批量导入</strong>：点击「上传文件夹」→ 直接拖拽整个项目文档文件夹 → 保留原有层级结构</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>从腾讯文档导入</strong>：导入选项 → 选「从腾讯文档导入」→ 授权后选择历史文档（支持PDF/Word/Excel/PPT）</div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>邀请成员</strong>：分享库邀请链接给团队 → 设置不同角色权限（管理员/编辑者/仅问答）</div></div>
+            <div class="step-item"><span class="step-num">5</span><div><strong>新人自助答疑</strong>：新员工直接在对话框提问 <code>@公司制度库 年假申请流程？绩效考核周期？</code>，无需打扰同事</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #fefce8, #fef9c3);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #eab308, #ca8a04);">07</div>
+        <div>
+          <div class="scenario-title">📚 个人成长 & 读书笔记管理</div>
+          <div class="scenario-tag">终身学习者 · 知识管理爱好者</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>读书笔记、课程资料、播客精华统一入库，构建个人知识体系</li>
+          <li>上传一本书的 PDF，AI 生成思维导图和章节摘要，快速掌握核心</li>
+          <li>跨书籍提问："这几本书对【成长型思维】的观点有何异同？"</li>
+          <li>每周输入积累，定期让 AI 总结知识增量，形成个人成长日志</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 个人知识体系构建步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>分类建库</strong>：按主题建多个知识库，如「商业思维」「心理学」「技术积累」，保持语义清晰命名</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>PDF 上传</strong>：拖拽书籍 PDF 至对应库 → 输入 <code>为这本书生成思维导图结构和各章节 200 字摘要</code></div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>Xmind 导入</strong>：已有脑图的可上传 .xmind 文件 → AI 自动解读并可基于脑图内容提问</div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>跨库综合</strong>：切换到「全局问答」模式 → 提问 <code>结合我所有关于"领导力"相关的内容，给出3个核心框架</code></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">08</div>
+        <div>
+          <div class="scenario-title">📊 数据分析 & 报表解读</div>
+          <div class="scenario-tag">分析师 · 运营 · 产品 | 无代码数据分析</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>上传 Excel/CSV 数据文件，AI 自动生成图表和分析摘要，无需代码</li>
+          <li>导入季度财报 PDF，提问关键指标变化、异常数据归因</li>
+          <li>多文件交叉分析：上传多期数据，AI 对比同比/环比趋势</li>
+          <li>业务报告快速生成：数据 + 目标 → AI 自动产出图文并茂的分析报告</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 数据分析操作步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>上传数据</strong>：直接将 Excel/CSV 或 PDF 报表拖入对话框（无需先存入知识库）</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>提出分析需求</strong>：输入 <code>分析这份销售数据，找出增长最快的品类、最薄弱的区域，用图表方式呈现</code></div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>切换 DeepSeek-R1</strong>：复杂数据推断类问题切换 DeepSeek-R1，逻辑推理能力更强</div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>多轮深挖</strong>：追问 <code>Q3 增长放缓的可能原因是什么？结合行业背景给出3个假设</code></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #fdf2f8, #fce7f3);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #ec4899, #db2777);">09</div>
+        <div>
+          <div class="scenario-title">💡 知识变现 & 知识 IP 打造</div>
+          <div class="scenario-tag">知识付费创业者 · 课程博主</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>将专业政策解读库、行业资源库发布至知识库广场，吸引目标用户</li>
+          <li>通过 AI 问答服务积累用户口碑，转化私域流量</li>
+          <li>公众号接入知识库，粉丝直接对话专业知识，提升服务价值</li>
+          <li>知识号打造个人/团队知识品牌，形成差异化 IP 定位</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 知识号 + 知识库广场发布步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>申请知识号</strong>：ima 官网 → 「知识号」入口 → 申请创作者身份（填写简介和方向）</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>精选知识库内容</strong>：将你的专业库整理、精选，设置对外展示的"推荐提问"（引导用户探索方向）</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>发布到广场</strong>：设置知识库「公开」→ 填写标签（如 #法律 #政策解读）→ 提交到「知识库广场」审核</div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>公众号接入</strong>：在公众号菜单设置中，添加 ima 知识库链接 → 粉丝点击即可直接对话你的专属知识库</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <div class="scenario-header" style="background: linear-gradient(135deg, #f5f3ff, #ede9fe);">
+        <div class="scenario-num" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">10</div>
+        <div>
+          <div class="scenario-title">🔬 深度研究 & 竞品分析</div>
+          <div class="scenario-tag">投资人 · 战略分析师 · 市场研究</div>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <ul>
+          <li>导入行业研报、新闻报道、财报数据，AI 自动识别关键趋势和拐点</li>
+          <li>Agent 模式（2.0）：一句话触发"深度研究"，AI 自动搜索、整合、输出报告</li>
+          <li>PDF 双语翻译：快速消化海外一手研究资料</li>
+          <li>混元 T1 模型处理复杂推理问题：市场预测、战略评估等</li>
+        </ul>
+        <div class="step-box">
+          <div class="step-box-title">📋 竞品深度分析操作步骤</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div><strong>收集资料</strong>：浏览器插件一键收藏竞品官网/媒体报道 → 上传竞品财报 PDF → 网页链接直接粘贴导入</div></div>
+            <div class="step-item"><span class="step-num">2</span><div><strong>双语处理</strong>：上传英文报告 → 点击「PDF 双语翻译」→ 左原文右中译同步对照阅读</div></div>
+            <div class="step-item"><span class="step-num">3</span><div><strong>Agent 深度研究</strong>：切换「任务模式」→ 选「生成报告」→ 输入 <code>分析[公司名]2025年战略布局，从市场/产品/技术/组织四维度输出SWOT</code></div></div>
+            <div class="step-item"><span class="step-num">4</span><div><strong>切换 T1 模型</strong>：在对话框模型选择里切换「混元T1」→ 进行多步推理和战略判断类复杂问题</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第五节 ── -->
+  <div class="section" id="sec5">
+    <div class="section-header">
+      <div class="section-icon green">💡</div>
+      <div>
+        <div class="section-title">05 高阶使用技巧</div>
+        <div class="section-subtitle">来自各平台资深用户的实战经验</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="tip-box">
+      <div class="tip-header">🎯 技巧 1：万能 Prompt 公式</div>
+      <div class="tip-content">
+        明确任务 + 限定来源 + 输出规则 + 细节要求<br><br>
+        示例：<code>基于我的"行业报告"知识库，生成 3000 字分析报告，分 4 个模块（市场规模/竞争格局/机会判断/风险预警），数据严格来自知识库，禁止编造，用表格呈现对比数据。</code>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-header">🔮 技巧 2：@知识库精准提问</div>
+      <div class="tip-content">
+        在提问前用 <code>@知识库名称</code> 限定范围，可让 AI 只在指定知识库内检索，避免全网泛化回答干扰，大幅提升专业准确性。<br><br>
+        例：<code>@公司制度库 年假申请流程是什么？需要几级审批？</code>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-header">⚙️ 技巧 3：三大模型灵活调度策略</div>
+      <div class="tip-content">
+        <strong>腾讯混元</strong>（默认）→ 日常问答、联网实时信息、通用写作，速度快<br>
+        <strong>DeepSeek-R1</strong> → 专业领域精准回答、逻辑推理、知识归纳，适合深度研究<br>
+        <strong>混元 T1</strong> → 复杂分析推理、多步骤任务、策略判断，适合高难度问题
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-header">📁 技巧 4：知识库结构设计最佳实践</div>
+      <div class="tip-content">
+        命名要<strong>精确有语义</strong>（如"2026考研数学资料库"而非"学习材料"）；<br>
+        提前规划<strong>多级目录</strong>，避免后期大量文件散乱；<br>
+        <strong>标签系统</strong>作为跨库索引，一个文件可挂多个标签（如 #行业报告 #竞品分析）；<br>
+        定期<strong>清理过期文件</strong>，重命名模糊文档，维持库的高质量
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-header">🔄 技巧 5：多轮追问优化输出质量</div>
+      <div class="tip-content">
+        不满意 AI 的回答时，不要重新提问，而是直接追问：<code>这部分内容展开详细说明</code> / <code>用表格重新展示</code> / <code>聚焦在第 3 点的竞争策略上</code>。<br>
+        ima 支持"修改最近一条提问"功能，可在原问题基础上调整措辞重新获取回答。
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-header">📲 技巧 6：碎片时间 + 移动端工作流</div>
+      <div class="tip-content">
+        通勤时用微信小程序快速收藏内容 → 桌面端统一整理入库 → 工作时调用知识库辅助输出。<br>
+        移动端 App 支持<strong>语音输入</strong>，适合碎片化录入想法；分享菜单可将任何网页直接发送至 ima。
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第六节 ── -->
+  <div class="section" id="sec6">
+    <div class="section-header">
+      <div class="section-icon yellow">✨</div>
+      <div>
+        <div class="section-title">06 特色玩法与创新用法</div>
+        <div class="section-subtitle">各平台用户探索出的新奇有趣用法</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🤖 搭建专属 AI 客服 <span class="tag tag-purple">企业玩法</span></div>
+        <p style="font-size: 14px; color: var(--gray-700); line-height: 1.7;">将产品手册、FAQ、售后政策上传至共享知识库，通过微信公众号菜单栏接入，用户可直接在公众号内对话 AI，自助解决问题，降低客服人力成本。</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🎙️ 播客 & 音频内容生产 <span class="tag tag-blue">Agent 玩法</span></div>
+        <p style="font-size: 14px; color: var(--gray-700); line-height: 1.7;">ima 2.0 Agent 模式：输入主题，AI 自动检索资料、生成脚本、转为语音播客，30 分钟完成一期高质量音频内容。</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🧩 "借脑"共享知识库 <span class="tag tag-green">广场玩法</span></div>
+        <p style="font-size: 14px; color: var(--gray-700); line-height: 1.7;">知识库广场已有大量高质量公开知识库（法律政策库、技术文档库、行业资讯库等），用户可直接加入"借用"他人整理的知识成果，无需从零建库。</p>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 实时图表 & 数据分析 <span class="tag tag-orange">新功能玩法</span></div>
+        <p style="font-size: 14px; color: var(--gray-700); line-height: 1.7;">2025 年 3 月上线智能数据分析功能，上传 Excel/CSV 数据，AI 自动生成图表、发现规律，无需代码，适合非技术用户做数据分析。</p>
+      </div>
+      <div class="card">
+        <div class="card-title">📝 Get笔记 + ima 双工具流 <span class="tag tag-teal">组合玩法</span></div>
+        <p style="font-size: 14px; color: var(--gray-700); line-height: 1.7;">用 Get 笔记快速捕捉碎片化灵感（轻量、随手记），再将整理好的内容批量导入 ima 知识库进行深度加工，形成"碎片收集 → 深度整合"的完整工作流。</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🌐 双语阅读 & 学术翻译 <span class="tag tag-blue">效率玩法</span></div>
+        <p style="font-size: 14px; color: var(--gray-700); line-height: 1.7;">v1.9.2 上线 PDF 双语对照翻译，上传英文论文、外文报告，左右分栏同时显示原文和中文译文，边读边对照，海外资料吸收效率大幅提升。</p>
+      </div>
+    </div>
+
+    <div class="callout success" style="margin-top: 8px;">
+      <strong>🌟 社区热门玩法：</strong>多位博主在知乎和公众号分享了"用 ima 知识库打造个人 AI 助理"的完整教程——将工作领域的所有积累（行业报告、学习笔记、优秀案例）系统导入，形成真正"懂你"的私域知识库，让 AI 提供高度个性化的专业建议，而非通用回答。
+    </div>
+  </div>
+
+  <!-- ── 第七节：高频认可案例 ── -->
+  <div class="section" id="sec7">
+    <div class="section-header">
+      <div class="section-icon teal">🏅</div>
+      <div>
+        <div class="section-title">07 高频认可的真实使用案例</div>
+        <div class="section-subtitle">来自各行业用户的一手实践，验证 ima 的实际价值</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="prose">
+      <p>以下案例来源于腾讯 ima 产品团队公开分享、各媒体平台深度报道及用户真实反馈，代表了 ima 被广泛认可的典型使用路径。</p>
+    </div>
+
+    <div class="case-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; margin-bottom:20px; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:0; left:0; width:4px; height:100%; background:linear-gradient(180deg,#3b82f6,#1a6ff4);"></div>
+      <div style="margin-left:12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="font-size:28px;">⚖️</div>
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">律师实习生的「案例知识库」</div>
+            <div style="font-size:13px; color:#64748b; margin-top:2px;">行业：法律 · 来源：腾讯ima产品团队采访</div>
+          </div>
+          <span style="margin-left:auto; background:#d1fae5; color:#065f46; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px;">真实案例 · 已验证</span>
+        </div>
+        <div style="font-size:14.5px; color:#334155; line-height:1.8;">
+          <p style="margin-bottom:10px;"><strong>背景：</strong>一位律师实习生需要快速整理客户访谈录音，梳理案件时间线和证据要素，原本需要 2-3 天的工作。</p>
+          <p style="margin-bottom:10px;"><strong>做法：</strong>① 将客户录音上传 ima → AI 自动转文字并提取关键要素；② 上传相关法条和历史类案判决到同一知识库；③ 提问让 AI 绘制案情脑图，梳理胜诉关键因素；④ 建立"类案知识库"，持续积累案例数据库。</p>
+          <p style="margin-bottom:10px;"><strong>结果：</strong>整理工作从 2-3 天缩短至半天，最终将 ima 工作流推广至整个律所，并在当地律师协会分享经验，成为推广者。</p>
+          <div style="background:#f0fdf4; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#166534;">💡 核心价值：将非结构化录音转化为可检索的结构化知识，并通过 AI 辅助法律推理</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; margin-bottom:20px; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:0; left:0; width:4px; height:100%; background:linear-gradient(180deg,#8b5cf6,#7c3aed);"></div>
+      <div style="margin-left:12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="font-size:28px;">🏛️</div>
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">杭州钱江海关「通关问答知识库」</div>
+            <div style="font-size:13px; color:#64748b; margin-top:2px;">行业：政务服务 · 来源：腾讯ima产品团队访谈</div>
+          </div>
+          <span style="margin-left:auto; background:#ede9fe; color:#5b21b6; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px;">机构案例 · 官方认证</span>
+        </div>
+        <div style="font-size:14.5px; color:#334155; line-height:1.8;">
+          <p style="margin-bottom:10px;"><strong>背景：</strong>海关工作人员每天接收大量寄件用户咨询，重复性问题（通关规则、禁限带物品等）消耗大量人力。</p>
+          <p style="margin-bottom:10px;"><strong>做法：</strong>① 工作人员自发将历史常见问题和官方政策文件汇入 ima 共享知识库；② 设置推荐提问引导用户自助查询；③ 通过链接分享给寄件用户，用户直接对话知识库解决 80% 的常规问题。</p>
+          <p style="margin-bottom:10px;"><strong>结果：</strong>客服重复性工作量显著降低，寄件用户自助解决率大幅提升，成为政务场景 AI 落地的典型示范。</p>
+          <div style="background:#faf5ff; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#5b21b6;">💡 核心价值：无需开发，零代码搭建政务 AI 客服，知识库即服务平台</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; margin-bottom:20px; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:0; left:0; width:4px; height:100%; background:linear-gradient(180deg,#f97316,#ea580c);"></div>
+      <div style="margin-left:12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="font-size:28px;">🍶</div>
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">白酒生意人的「进货价格查询库」</div>
+            <div style="font-size:13px; color:#64748b; margin-top:2px;">行业：商贸零售 · 来源：腾讯ima产品团队采访</div>
+          </div>
+          <span style="margin-left:auto; background:#ffedd5; color:#9a3412; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px;">真实案例 · 创意玩法</span>
+        </div>
+        <div style="font-size:14.5px; color:#334155; line-height:1.8;">
+          <p style="margin-bottom:10px;"><strong>背景：</strong>一位白酒批发商需要频繁与客户沟通各款酒的进货价、出货价，每次查表格回复效率低，沟通成本高。</p>
+          <p style="margin-bottom:10px;"><strong>做法：</strong>① 将商品价格截图、价格表 Excel 上传到 ima 知识库；② 将知识库链接分享给生意伙伴（设置仅限问答权限，不可下载）；③ 合作伙伴直接在知识库中询价，AI 即时给出准确价格。</p>
+          <p style="margin-bottom:10px;"><strong>结果：</strong>客户询价等待时间从数分钟缩短至秒级，老板从重复性沟通中解脱，生意伙伴体验极佳，多次主动分享推荐。</p>
+          <div style="background:#fff7ed; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#9a3412;">💡 核心价值：将静态价格表变成动态 AI 询价系统，人均效率翻倍</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; margin-bottom:20px; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:0; left:0; width:4px; height:100%; background:linear-gradient(180deg,#10b981,#059669);"></div>
+      <div style="margin-left:12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="font-size:28px;">📚</div>
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">25年教龄历史老师的「备课知识库」</div>
+            <div style="font-size:13px; color:#64748b; margin-top:2px;">行业：教育 · 来源：搜狐/ima月活报告</div>
+          </div>
+          <span style="margin-left:auto; background:#d1fae5; color:#065f46; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px;">教育案例 · 高频验证</span>
+        </div>
+        <div style="font-size:14.5px; color:#334155; line-height:1.8;">
+          <p style="margin-bottom:10px;"><strong>背景：</strong>一位有 25 年教龄的历史老师积累了大量教学资料，但分散难以复用，每次备课需要重复整理。</p>
+          <p style="margin-bottom:10px;"><strong>做法：</strong>① 将历年教案、课件、历史史料 PDF 批量导入 ima 知识库；② 备课时对话知识库快速调取相关内容；③ 用 AI 生成不同难度的历史题目，分层教学；④ 建立学生常见错误库，定向强化薄弱点。</p>
+          <p style="margin-bottom:10px;"><strong>结果：</strong>备课时间从 2-3 小时缩短至 30-40 分钟，题目质量和教学覆盖度显著提升，成为学校 AI 教学示范教师。</p>
+          <div style="background:#f0fdf4; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#166534;">💡 核心价值：将 25 年经验积累系统化，让老教师的知识资产持续发挥价值</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:28px; margin-bottom:20px; position:relative; overflow:hidden;">
+      <div style="position:absolute; top:0; left:0; width:4px; height:100%; background:linear-gradient(180deg,#0ea5e9,#0284c7);"></div>
+      <div style="margin-left:12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="font-size:28px;">✍️</div>
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">自媒体团队的「内容工厂」</div>
+            <div style="font-size:13px; color:#64748b; margin-top:2px;">行业：内容创作 · 来源：woshipm深度测评</div>
+          </div>
+          <span style="margin-left:auto; background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px;">创作案例 · 高度认可</span>
+        </div>
+        <div style="font-size:14.5px; color:#334155; line-height:1.8;">
+          <p style="margin-bottom:10px;"><strong>背景：</strong>一个 3 人自媒体团队需要每周产出 10+ 篇高质量内容，素材收集和内容创作耗时极大。</p>
+          <p style="margin-bottom:10px;"><strong>做法：</strong>① 团队共建「素材库」共享知识库，每人用浏览器插件随手收藏好内容；② 定期让 AI 对素材进行主题聚类，挖掘选题角度；③ 写作时 @素材库 让 AI 引用真实案例和数据；④ 任务模式直接生成 PPT 和播客，扩大传播矩阵。</p>
+          <p style="margin-bottom:10px;"><strong>结果：</strong>内容产出效率提升 3x，素材复用率大幅提高，3 人团队的内容产量超过原来 8 人团队水平。</p>
+          <div style="background:#f0f9ff; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#0369a1;">💡 核心价值：共享知识库实现团队知识协同，任务模式批量生产多格式内容</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="background:linear-gradient(135deg,#eff6ff,#e0f2fe); border:1px solid #bfdbfe; border-radius:14px; padding:20px 24px; margin-top:8px;">
+      <strong style="color:#1e40af;">📊 数据佐证：</strong><span style="color:#1e3a8a; font-size:14.5px;">知识库数量排名前三的行业为<strong>科技互联网、经济金融、健康医疗</strong>。ima 月活增长突破 80 倍（对比 2025 年 1 月），9 月手机端月活 150.2 万，PC 端约 110 万，已深入 20+ 行业。</span>
+    </div>
+  </div>
+
+  <!-- ── 第八节：生态联动 ── -->
+  <div class="section" id="sec8">
+    <div class="section-header">
+      <div class="section-icon purple">🔗</div>
+      <div>
+        <div class="section-title">08 生态联动：ima 与其他产品的组合用法</div>
+        <div class="section-subtitle">覆盖 WorkBuddy / 微信 / 企业微信 / 飞书 / 腾讯文档 / 腾讯会议 / TRAE 等全生态</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="prose" style="margin-bottom:24px;">
+      <p>ima 并不孤立存在，它的真正威力在于与腾讯及第三方产品的深度联动。以下将分平台详细介绍联动场景和操作方法。</p>
+    </div>
+
+    <!-- WorkBuddy -->
+    <div class="card" style="border-left:4px solid #1a6ff4; margin-bottom:24px;">
+      <div class="card-title" style="font-size:18px;">🦞 WorkBuddy × ima — AI Agent 调度知识库</div>
+      <div style="background:#f8fafc; border-radius:10px; padding:16px; margin:12px 0; font-size:13.5px; color:#64748b;">WorkBuddy 是腾讯推出的桌面 AI Agent，通过 SkillHub 技能社区内置 ima Skill，可用自然语言直接操作 ima 知识库，实现「任务执行 + 知识沉淀」的自动化闭环。</div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-weight:700; color:#0f172a; margin-bottom:8px; font-size:15px;">🔸 场景一：看到好文章，一键归档到 ima</div>
+        <div class="step-list">
+          <div class="step-item"><span class="step-num">1</span><div>在微信中看到有价值的公众号文章 → 转发给 WorkBuddy 小程序</div></div>
+          <div class="step-item"><span class="step-num">2</span><div>WorkBuddy 自动调用「ima 笔记 Skill」+ 「Get笔记 Skill」</div></div>
+          <div class="step-item"><span class="step-num">3</span><div>文章内容自动保存到 ima 知识库，完成「看到即归档」的自动化工作流</div></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-weight:700; color:#0f172a; margin-bottom:8px; font-size:15px;">🔸 场景二：用 WorkBuddy 检索 ima 知识库辅助决策</div>
+        <div class="step-list">
+          <div class="step-item"><span class="step-num">1</span><div>在 WorkBuddy 界面安装 ima Skills（SkillHub → 搜索 ima → 一键安装）</div></div>
+          <div class="step-item"><span class="step-num">2</span><div>对话时直接说「从 ima 知识库里找一下关于 XX 的内容」</div></div>
+          <div class="step-item"><span class="step-num">3</span><div>WorkBuddy 调用 ima 接口返回相关知识，结合当前任务给出建议</div></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-weight:700; color:#0f172a; margin-bottom:8px; font-size:15px;">🔸 场景三：WorkBuddy 完成任务后自动记笔记到 ima</div>
+        <div class="step-list">
+          <div class="step-item"><span class="step-num">1</span><div>让 WorkBuddy 完成一项分析任务（如：分析竞品报告）</div></div>
+          <div class="step-item"><span class="step-num">2</span><div>在指令末尾加上「将结果记到 ima 的XX知识库」</div></div>
+          <div class="step-item"><span class="step-num">3</span><div>WorkBuddy 自动调用 ima Skill，将任务输出存入指定知识库，形成长期积累</div></div>
+        </div>
+      </div>
+
+      <div style="background:#eff6ff; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#1e40af;">
+        <strong>💡 特别提示：</strong>WorkBuddy 小程序已上线微信，无需下载 App，直接在微信内使用，可远程操控桌面端 WorkBuddy 执行任务（双模式：本机模式 + 云端模式）
+      </div>
+    </div>
+
+    <!-- 微信 & 微信公众号 -->
+    <div class="card" style="border-left:4px solid #07c160; margin-bottom:24px;">
+      <div class="card-title" style="font-size:18px;">💬 微信 & 公众号 × ima — 最强内容入口</div>
+      <div style="background:#f8fafc; border-radius:10px; padding:16px; margin:12px 0; font-size:13.5px; color:#64748b;">微信是 ima 最核心的内容入口，也是其最大的生态护城河——500万+公众号内容、聊天文件、小程序，均与 ima 深度打通。</div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div style="background:#f0fdf4; border-radius:10px; padding:14px;">
+          <div style="font-weight:700; color:#065f46; margin-bottom:8px;">📰 公众号文章一键入库</div>
+          <ol style="padding-left:18px; font-size:13.5px; color:#334155; line-height:1.8;">
+            <li>打开公众号文章</li>
+            <li>点击右上角「···」</li>
+            <li>选择「保存到ima知识库」</li>
+            <li>AI 自动提取摘要和标签</li>
+          </ol>
+        </div>
+        <div style="background:#eff6ff; border-radius:10px; padding:14px;">
+          <div style="font-weight:700; color:#1e40af; margin-bottom:8px;">📎 聊天文件快速入库</div>
+          <ol style="padding-left:18px; font-size:13.5px; color:#334155; line-height:1.8;">
+            <li>长按聊天中的 PDF/Word/图片</li>
+            <li>选择「用ima打开」</li>
+            <li>自动 OCR 解析（图片→文字）</li>
+            <li>永久保存至知识库</li>
+          </ol>
+        </div>
+        <div style="background:#fff7ed; border-radius:10px; padding:14px;">
+          <div style="font-weight:700; color:#9a3412; margin-bottom:8px;">📱 小程序随时使用</div>
+          <ol style="padding-left:18px; font-size:13.5px; color:#334155; line-height:1.8;">
+            <li>微信搜索「ima知识库」</li>
+            <li>点击右上角「导入」</li>
+            <li>选择「微信文件」直接导入</li>
+            <li>支持语音输入提问</li>
+          </ol>
+        </div>
+        <div style="background:#fdf4ff; border-radius:10px; padding:14px;">
+          <div style="font-weight:700; color:#5b21b6; margin-bottom:8px;">🤖 公众号接入 AI 客服</div>
+          <ol style="padding-left:18px; font-size:13.5px; color:#334155; line-height:1.8;">
+            <li>建好专业知识库</li>
+            <li>设置公开 + 推荐提问</li>
+            <li>在公众号菜单添加链接</li>
+            <li>粉丝直接对话你的知识库</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- 腾讯文档 -->
+    <div class="card" style="border-left:4px solid #0ea5e9; margin-bottom:24px;">
+      <div class="card-title" style="font-size:18px;">📄 腾讯文档 × ima — 生产 & 存储双向打通</div>
+      <div style="background:#f8fafc; border-radius:10px; padding:16px; margin:12px 0; font-size:13.5px; color:#64748b;">2025年11月，ima 正式打通腾讯文档，实现内容在「文档编辑工具」和「AI 知识库」之间的无缝流转。</div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div>
+          <div style="font-weight:700; color:#0f172a; margin-bottom:8px; font-size:14px;">📥 腾讯文档 → ima（导入）</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div>进入 ima 知识库界面（桌面端）</div></div>
+            <div class="step-item"><span class="step-num">2</span><div>上传文件 → 选「从腾讯文档导入」</div></div>
+            <div class="step-item"><span class="step-num">3</span><div>首次授权腾讯文档应用</div></div>
+            <div class="step-item"><span class="step-num">4</span><div>选择文件（PDF/Word/Excel/PPT）→ 导入（每日9个文件上限）</div></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#0f172a; margin-bottom:8px; font-size:14px;">📤 ima → 腾讯文档（导出）</div>
+          <div class="step-list">
+            <div class="step-item"><span class="step-num">1</span><div>在 ima 对话中获得满意的回答或内容</div></div>
+            <div class="step-item"><span class="step-num">2</span><div>点击回答右下角「导出」</div></div>
+            <div class="step-item"><span class="step-num">3</span><div>选择「导出到腾讯文档」</div></div>
+            <div class="step-item"><span class="step-num">4</span><div>自动在腾讯文档生成「和ima的对话」Word 文件夹</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#f0f9ff; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#0369a1;">
+        <strong>💡 最佳实践：</strong>用腾讯文档协作撰写 → 存入 ima 沉淀为知识资产 → AI 基于历史文档生成新内容 → 再导出到腾讯文档分享。形成「创作 → 沉淀 → 复用 → 输出」的知识闭环。
+      </div>
+    </div>
+
+    <!-- 腾讯会议 -->
+    <div class="card" style="border-left:4px solid #14b8a6; margin-bottom:24px;">
+      <div class="card-title" style="font-size:18px;">🎙️ 腾讯会议 × ima — 会议纪要自动入库</div>
+      <div style="background:#f8fafc; border-radius:10px; padding:16px; margin:12px 0; font-size:13.5px; color:#64748b;">通过 WorkBuddy 的腾讯会议 Skill，可以实现会议纪要→知识库的自动化归档，无需手动整理。</div>
+
+      <div class="step-list" style="margin-bottom:16px;">
+        <div class="step-item"><span class="step-num">1</span><div><strong>会中录制</strong>：腾讯会议开启「AI 纪要」功能，会后自动生成结构化会议纪要</div></div>
+        <div class="step-item"><span class="step-num">2</span><div><strong>WorkBuddy 获取</strong>：在 WorkBuddy 安装腾讯会议 Skill → 指令「读取今天的会议纪要」→ 自动拉取内容</div></div>
+        <div class="step-item"><span class="step-num">3</span><div><strong>存入 ima</strong>：WorkBuddy 进一步指令「将纪要整理后保存到 ima 的项目知识库」</div></div>
+        <div class="step-item"><span class="step-num">4</span><div><strong>后续召回</strong>：随时在 ima 中提问「上周三产品会议决定了什么？」→ AI 精准检索会议记录</div></div>
+      </div>
+      <div style="background:#f0fdfa; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#0f766e;">
+        <strong>💡 拓展用法：</strong>WorkBuddy 还支持自然语言「创建腾讯会议」「查询签到情况」，实现从会议安排到纪要归档的全流程自动化。
+      </div>
+    </div>
+
+    <!-- 企业微信 -->
+    <div class="card" style="border-left:4px solid #07c160; margin-bottom:24px;">
+      <div class="card-title" style="font-size:18px;">🏢 企业微信 × ima — 企业知识服务机器人</div>
+      <div style="background:#f8fafc; border-radius:10px; padding:16px; margin:12px 0; font-size:13.5px; color:#64748b;">通过 WorkBuddy 接入企业微信，可实现企业内部的「知识库 AI 机器人」，员工在企业微信群内即可对话 ima 知识库。</div>
+
+      <div class="step-list" style="margin-bottom:16px;">
+        <div class="step-item"><span class="step-num">1</span><div><strong>创建企微机器人</strong>：企业微信管理后台 → 应用管理 → 自建 → 创建应用（选 API 模式）→ 获取 Bot ID 和 Secret</div></div>
+        <div class="step-item"><span class="step-num">2</span><div><strong>WorkBuddy 配置</strong>：WorkBuddy → Claw 设置 → 企微 AIBot 集成 → 填入 Bot ID 和 Secret → 注册</div></div>
+        <div class="step-item"><span class="step-num">3</span><div><strong>关联 ima</strong>：在 WorkBuddy 中安装 ima Skill → 配置默认关联的知识库</div></div>
+        <div class="step-item"><span class="step-num">4</span><div><strong>开始使用</strong>：员工在企业微信中 @机器人 即可直接查询公司知识库，无需跳转其他应用</div></div>
+        <div class="step-item"><span class="step-num">5</span><div><strong>自动通知</strong>：WorkBuddy 完成任务后，通过企微机器人发消息通知相关同事，实现任务闭环</div></div>
+      </div>
+    </div>
+
+    <!-- 飞书 -->
+    <div class="card" style="border-left:4px solid #2563eb; margin-bottom:24px;">
+      <div class="card-title" style="font-size:18px;">🚀 飞书 × ima — 跨平台知识协同</div>
+      <div style="background:#f8fafc; border-radius:10px; padding:16px; margin:12px 0; font-size:13.5px; color:#64748b;">通过 WorkBuddy 接入飞书，团队在飞书工作时也能直接调用 ima 知识库，打破平台壁垒。</div>
+
+      <div class="step-list" style="margin-bottom:16px;">
+        <div class="step-item"><span class="step-num">1</span><div><strong>飞书配置</strong>：飞书开放平台 → 创建企业自建应用 → 添加「机器人」能力 → 配置权限（收发消息、访问文档等）→ 获取 App ID 和 App Secret</div></div>
+        <div class="step-item"><span class="step-num">2</span><div><strong>WorkBuddy 绑定</strong>：WorkBuddy → 飞书集成 → 填入 App ID 和 Secret → 获取 Webhook 地址</div></div>
+        <div class="step-item"><span class="step-num">3</span><div><strong>回调配置</strong>：飞书 → 事件与回调 → 填入 Webhook 地址 → 订阅「接收消息」事件 → 发布应用</div></div>
+        <div class="step-item"><span class="step-num">4</span><div><strong>联动使用</strong>：飞书中 @WorkBuddy 机器人发送指令 → 机器人调用 ima Skill 执行知识查询/归档</div></div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="background:#eff6ff; border-radius:10px; padding:12px 14px; font-size:13px; color:#1e40af;">
+          <strong>典型用法：</strong>飞书文档自动同步 ima 知识库 → 团队成员在飞书群 @机器人 提问 → 回答来自 ima 知识库内容
+        </div>
+        <div style="background:#f0fdf4; border-radius:10px; padding:12px 14px; font-size:13px; color:#166534;">
+          <strong>价值亮点：</strong>飞书用户不必切换工具，在熟悉的环境中直接享受 ima 知识管理能力
+        </div>
+      </div>
+    </div>
+
+    <!-- TRAE -->
+    <div class="card" style="border-left:4px solid #8b5cf6; margin-bottom:24px;">
+      <div class="card-title" style="font-size:18px;">💻 TRAE（字节）/ CodeBuddy × ima — 开发者知识库</div>
+      <div style="background:#f8fafc; border-radius:10px; padding:16px; margin:12px 0; font-size:13.5px; color:#64748b;">TRAE 是字节跳动推出的 AI IDE，CodeBuddy 是腾讯的 AI 编程助手。开发者可以将 ima 知识库与编程工具结合，打造「代码 + 知识」的一体化工作台。</div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div>
+          <div style="font-weight:700; color:#5b21b6; margin-bottom:8px; font-size:14px;">🔷 CodeBuddy + ima 组合</div>
+          <ul style="padding-left:18px; font-size:13.5px; color:#334155; line-height:1.8;">
+            <li>将技术文档、API 文档、架构设计上传到 ima</li>
+            <li>CodeBuddy 生成代码时，同步检索 ima 知识库确保符合团队规范</li>
+            <li>将代码 Review 建议和技术决策记录存入 ima，形成技术知识资产</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#5b21b6; margin-bottom:8px; font-size:14px;">🔷 TRAE + ima 组合</div>
+          <ul style="padding-left:18px; font-size:13.5px; color:#334155; line-height:1.8;">
+            <li>将 TRAE 生成的技术方案文档导入 ima 知识库</li>
+            <li>团队成员在 ima 中对话技术文档，无需阅读完整代码仓库</li>
+            <li>新人入职直接问 ima「这个模块的核心逻辑是什么？」快速上手</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:#faf5ff; border-radius:10px; padding:12px 16px; font-size:13.5px; color:#5b21b6;">
+        <strong>💡 开发者最佳实践：</strong>代码仓库 README / 接口文档 → ima 知识库 → 自然语言查询技术规范，避免重复查阅文档，提升 30%+ 开发效率
+      </div>
+    </div>
+
+    <!-- 联动全景图 -->
+    <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a); border-radius:16px; padding:28px; margin-top:8px;">
+      <div style="font-size:17px; font-weight:800; color:#fff; margin-bottom:20px; text-align:center;">🌐 ima 生态联动全景图</div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">🦞</div>
+          <div style="color:#93c5fd; font-weight:700; font-size:13px; margin-bottom:4px;">WorkBuddy</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">AI Agent 执行 + 知识归档</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">💬</div>
+          <div style="color:#86efac; font-weight:700; font-size:13px; margin-bottom:4px;">微信 / 公众号</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">内容入口 + 粉丝知识服务</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">📄</div>
+          <div style="color:#93c5fd; font-weight:700; font-size:13px; margin-bottom:4px;">腾讯文档</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">双向导入导出 知识闭环</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">🎙️</div>
+          <div style="color:#6ee7b7; font-weight:700; font-size:13px; margin-bottom:4px;">腾讯会议</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">纪要自动入库 历史可查</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">🏢</div>
+          <div style="color:#86efac; font-weight:700; font-size:13px; margin-bottom:4px;">企业微信</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">企业知识机器人 群内可问答</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">🚀</div>
+          <div style="color:#c4b5fd; font-weight:700; font-size:13px; margin-bottom:4px;">飞书</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">跨平台知识协同 无缝衔接</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">💻</div>
+          <div style="color:#fca5a5; font-weight:700; font-size:13px; margin-bottom:4px;">CodeBuddy / TRAE</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">技术文档 + 开发规范知识化</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">🌐</div>
+          <div style="color:#fde68a; font-weight:700; font-size:13px; margin-bottom:4px;">浏览器插件</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">任意网页一键收藏入库</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08); border-radius:12px; padding:14px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">📊</div>
+          <div style="color:#93c5fd; font-weight:700; font-size:13px; margin-bottom:4px;">Get笔记</div>
+          <div style="color:rgba(255,255,255,0.6); font-size:12px;">碎片收集 → ima 深度整合</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第九节：用户画像（原第七节）── -->
+  <div class="section" id="sec9">
+    <div class="section-header">
+      <div class="section-icon pink">👤</div>
+      <div>
+        <div class="section-title">09 适合的用户画像</div>
+        <div class="section-subtitle">哪些人最能从 ima 中获益？</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="grid-3">
+      <div class="user-card">
+        <div class="user-avatar">🎓</div>
+        <div class="user-type">学生 / 研究者</div>
+        <div class="user-tags">
+          <span class="user-tag">考研党</span>
+          <span class="user-tag">硕博生</span>
+          <span class="user-tag">文献控</span>
+        </div>
+        <div class="user-desc">文献管理、论文写作、课程资料整合，效率提升最显著的群体</div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">💼</div>
+        <div class="user-type">职场人士</div>
+        <div class="user-tags">
+          <span class="user-tag">运营</span>
+          <span class="user-tag">产品经理</span>
+          <span class="user-tag">分析师</span>
+        </div>
+        <div class="user-desc">行业研究、报告撰写、会议整理，知识沉淀与效率提升双收</div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">✍️</div>
+        <div class="user-type">内容创作者</div>
+        <div class="user-tags">
+          <span class="user-tag">博主</span>
+          <span class="user-tag">自媒体</span>
+          <span class="user-tag">编辑</span>
+        </div>
+        <div class="user-desc">素材管理、选题策划、多风格文案输出，创作效率大幅提升</div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">⚖️</div>
+        <div class="user-type">专业从业者</div>
+        <div class="user-tags">
+          <span class="user-tag">律师</span>
+          <span class="user-tag">教师</span>
+          <span class="user-tag">顾问</span>
+        </div>
+        <div class="user-desc">专业知识库构建、快速检索、辅助决策，专业深度有保障</div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">🏢</div>
+        <div class="user-type">中小企业 / 团队</div>
+        <div class="user-tags">
+          <span class="user-tag">初创公司</span>
+          <span class="user-tag">小团队</span>
+          <span class="user-tag">知识密集型</span>
+        </div>
+        <div class="user-desc">共享知识库作为企业 Wiki，降低知识沉淀门槛，免费方案即可满足</div>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">📱</div>
+        <div class="user-type">微信重度用户</div>
+        <div class="user-tags">
+          <span class="user-tag">公众号订阅者</span>
+          <span class="user-tag">内容收藏控</span>
+          <span class="user-tag">微信生态</span>
+        </div>
+        <div class="user-desc">与微信生态无缝打通是最大亮点，公众号内容整理效率极高</div>
+      </div>
+    </div>
+
+    <div class="callout warning" style="margin-top: 24px;">
+      <strong>⚠️ 相对不适合的用户：</strong>对 AI 输出精度要求极高且无法容错的场景（如法律文书直接使用）；移动端重度使用者（桌面端功能更完整）；需要复杂双链笔记或知识图谱功能的 Obsidian 重度用户。
+    </div>
+  </div>
+
+  <!-- ── 第十节 ── -->
+  <div class="section" id="sec10">
+    <div class="section-header">
+      <div class="section-icon red">⚔️</div>
+      <div>
+        <div class="section-title">10 竞品横向对比</div>
+        <div class="section-subtitle">ima 在知识管理赛道的位置</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>功能维度</th>
+          <th>腾讯 ima</th>
+          <th>Notion AI</th>
+          <th>印象笔记</th>
+          <th>Get 笔记</th>
+          <th>Obsidian</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>微信生态整合</strong></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★</span><span class="half-star">★★★★</span></td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="half-star">★★★★★</span></td>
+        </tr>
+        <tr>
+          <td><strong>AI 问答能力</strong></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★</span><span class="half-star">★★★</span></td>
+        </tr>
+        <tr>
+          <td><strong>知识库管理</strong></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+          <td><span class="star">★★★★★</span></td>
+        </tr>
+        <tr>
+          <td><strong>笔记编辑功能</strong></td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★★★★</span></td>
+        </tr>
+        <tr>
+          <td><strong>团队协作</strong></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+          <td><span class="star">★★</span><span class="half-star">★★★</span></td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+        </tr>
+        <tr>
+          <td><strong>移动端体验</strong></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+        </tr>
+        <tr>
+          <td><strong>国内访问速度</strong></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★</span><span class="half-star">★★★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★★★</span></td>
+          <td><span class="star">★★★★</span><span class="half-star">★</span></td>
+        </tr>
+        <tr>
+          <td><strong>免费存储空间</strong></td>
+          <td><span style="color:#10b981; font-weight: 700;">50GB 免费</span></td>
+          <td>有限免费</td>
+          <td>60MB 免费</td>
+          <td>有限免费</td>
+          <td>本地存储</td>
+        </tr>
+        <tr>
+          <td><strong>内容公开生态</strong></td>
+          <td><span class="star">★★★★★</span> 知识号/广场</td>
+          <td><span class="star">★★★</span><span class="half-star">★★</span></td>
+          <td><span class="star">★★</span><span class="half-star">★★★</span></td>
+          <td><span class="star">★★</span><span class="half-star">★★★</span></td>
+          <td><span class="star">★</span><span class="half-star">★★★★</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout info" style="margin-top: 20px;">
+      <strong>📌 竞争定位总结：</strong>ima 最大的护城河是<strong>微信生态深度融合</strong> + <strong>50GB 超大免费存储</strong> + <strong>腾讯内容生态（500万+公众号）</strong>。在国内 AI 知识管理赛道，ima 是唯一能与微信内容流无缝打通的产品，这一优势短期内竞品难以复制。
+    </div>
+  </div>
+
+  <!-- ── 第十一节 ── -->
+  <div class="section" id="sec11">
+    <div class="section-header">
+      <div class="section-icon blue">📊</div>
+      <div>
+        <div class="section-title">11 SWOT 综合分析</div>
+        <div class="section-subtitle">全面评估 ima 的战略位置</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="swot-grid">
+      <div class="swot-card s">
+        <div class="swot-label">S</div>
+        <div class="swot-title">优势 Strengths</div>
+        <ul class="swot-list">
+          <li>微信 / 腾讯生态无缝打通，公众号、聊天文件一键导入</li>
+          <li>500 万+ 公众号内容搜索，国内独家优势</li>
+          <li>50GB 超大免费存储空间，远超竞品</li>
+          <li>三大 AI 模型（混元/DeepSeek-R1/混元T1）灵活调度</li>
+          <li>RAG 技术保证答案可溯源，杜绝知识库问答幻觉</li>
+          <li>国内访问速度快，无网络限制</li>
+          <li>Agent 2.0 支持复杂自动化任务</li>
+        </ul>
+      </div>
+      <div class="swot-card w">
+        <div class="swot-label">W</div>
+        <div class="swot-title">劣势 Weaknesses</div>
+        <ul class="swot-list">
+          <li>笔记编辑功能相对基础，缺乏双链/块引用等高级功能</li>
+          <li>移动端功能仍弱于桌面端，部分功能仍需 PC 操作</li>
+          <li>Excel/PPT 深度解析能力有待加强</li>
+          <li>AI 搜索在复杂问题上偶有理解偏差</li>
+          <li>单次导入网址上限 10 个，批量操作受限</li>
+          <li>对微信生态强依赖，非微信用户价值感知弱</li>
+        </ul>
+      </div>
+      <div class="swot-card o">
+        <div class="swot-label">O</div>
+        <div class="swot-title">机会 Opportunities</div>
+        <ul class="swot-list">
+          <li>AI 知识管理赛道快速爆发，用户教育成本降低</li>
+          <li>企业知识管理数字化转型需求旺盛</li>
+          <li>知识变现经济兴起，知识号生态具备流量变现潜力</li>
+          <li>垂直行业深入（法律、医疗、教育）有大量专业需求</li>
+          <li>企业微信打通可进一步扩展 B 端市场</li>
+          <li>API 开放后可连接更多第三方生产力工具</li>
+        </ul>
+      </div>
+      <div class="swot-card t">
+        <div class="swot-label">T</div>
+        <div class="swot-title">威胁 Threats</div>
+        <ul class="swot-list">
+          <li>字节、阿里等大厂加码 AI 知识管理赛道</li>
+          <li>Notion、Obsidian 等国际工具持续深化 AI 能力</li>
+          <li>通用大模型能力平权，知识库护城河面临压缩</li>
+          <li>用户隐私与数据安全顾虑（尤其企业场景）</li>
+          <li>垂直场景专业工具（如 Elicit 用于学术研究）的竞争</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 第十二节 ── -->
+  <div class="section" id="sec12">
+    <div class="section-header">
+      <div class="section-icon green">🏆</div>
+      <div>
+        <div class="section-title">12 综合评分与研究结论</div>
+        <div class="section-subtitle">基于多平台评测数据的综合判断</div>
+      </div>
+    </div>
+    <div class="section-divider"></div>
+
+    <div class="card" style="margin-bottom: 28px;">
+      <div class="card-title">📈 综合能力评分</div>
+      <div style="padding-top: 8px;">
+        <div class="rating-row">
+          <span class="rating-label">知识管理能力</span>
+          <div class="rating-bar-bg"><div class="rating-bar" style="width: 90%; background: linear-gradient(90deg, #10b981, #34d399);"></div></div>
+          <span class="rating-score">9.0</span>
+        </div>
+        <div class="rating-row">
+          <span class="rating-label">AI 问答质量</span>
+          <div class="rating-bar-bg"><div class="rating-bar" style="width: 88%; background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div></div>
+          <span class="rating-score">8.8</span>
+        </div>
+        <div class="rating-row">
+          <span class="rating-label">微信生态融合</span>
+          <div class="rating-bar-bg"><div class="rating-bar" style="width: 98%; background: linear-gradient(90deg, #8b5cf6, #a78bfa);"></div></div>
+          <span class="rating-score">9.8</span>
+        </div>
+        <div class="rating-row">
+          <span class="rating-label">团队协作支持</span>
+          <div class="rating-bar-bg"><div class="rating-bar" style="width: 82%; background: linear-gradient(90deg, #f97316, #fb923c);"></div></div>
+          <span class="rating-score">8.2</span>
+        </div>
+        <div class="rating-row">
+          <span class="rating-label">内容创作辅助</span>
+          <div class="rating-bar-bg"><div class="rating-bar" style="width: 85%; background: linear-gradient(90deg, #ec4899, #f472b6);"></div></div>
+          <span class="rating-score">8.5</span>
+        </div>
+        <div class="rating-row">
+          <span class="rating-label">移动端体验</span>
+          <div class="rating-bar-bg"><div class="rating-bar" style="width: 78%; background: linear-gradient(90deg, #14b8a6, #2dd4bf);"></div></div>
+          <span class="rating-score">7.8</span>
+        </div>
+        <div class="rating-row">
+          <span class="rating-label">性价比（免费版）</span>
+          <div class="rating-bar-bg"><div class="rating-bar" style="width: 96%; background: linear-gradient(90deg, #eab308, #facc15);"></div></div>
+          <span class="rating-score">9.6</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-box">
+      <h3>🔍 研究结论</h3>
+      <p>腾讯 ima 在上线仅 1.5 年内完成了从 AI 搜索工具到完整知识操作系统的蜕变。其核心竞争力在于三点汇聚：<strong>腾讯微信生态的流量入口</strong>、<strong>高质量多模型 AI 推理能力</strong>和<strong>50GB 免费存储的低门槛策略</strong>。</p>
+      <p>从各大平台的用户反馈来看，ima 的价值在使用深度上呈现明显的"两极化"——轻度用户往往感受有限，而真正将其融入工作流、建立结构化知识库的用户，普遍反映效率提升显著，甚至出现"锁进程序坞"、"不可或缺"等极度正面的评价。</p>
+      <p>未来，随着 Agent 能力的深化、垂直行业解决方案的落地以及企业微信的打通，ima 有望从个人知识管理工具演变为覆盖个人和团队的全场景 AI 知识操作系统，在国内知识管理赛道占据主导地位。</p>
+      <p style="color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 20px;">
+        📌 数据来源：知乎、今日头条、人人都是产品经理、微信公众号（ima官方/多位博主）、什么值得买、AIGC工具导航、腾讯云开发者社区、腾讯新闻、搜狐科技等平台，内容汇编截至 2026 年 4 月。
+      </p>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════ FOOTER ══════════ -->
+<div class="report-footer">
+  <strong>腾讯 ima 深度研究报告</strong> · 基于全网主流媒体平台内容汇编 · 2026 年 4 月
+</div>
+
+</body>
+</html>
