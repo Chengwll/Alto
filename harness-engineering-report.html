@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harness Engineering 深度研究报告 · 2026</title>
+  <style>
+    /* ======================== 设计系统 ======================== */
+    :root {
+      --color-primary: #1a6ff4;
+      --color-primary-light: #e8f0fe;
+      --color-accent: #0ea5e9;
+      --color-dark: #0f172a;
+      --color-white: #ffffff;
+      --color-gray-50: #f8fafc;
+      --color-gray-100: #f1f5f9;
+      --color-gray-200: #e2e8f0;
+      --color-gray-300: #cbd5e1;
+      --color-gray-400: #94a3b8;
+      --color-gray-500: #64748b;
+      --color-gray-600: #475569;
+      --color-gray-700: #334155;
+      --color-gray-800: #1e293b;
+      --color-gray-900: #0f172a;
+      --color-success: #10b981;
+      --color-success-light: #d1fae5;
+      --color-warning: #f59e0b;
+      --color-warning-light: #fef3c7;
+      --color-error: #ef4444;
+      --color-error-light: #fee2e2;
+      --color-purple: #8b5cf6;
+      --color-purple-light: #ede9fe;
+      --color-teal: #14b8a6;
+      --color-orange: #f97316;
+      --color-orange-light: #ffedd5;
+      --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-family-base);
+      background: var(--color-gray-50);
+      color: var(--color-gray-800);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    /* ======================== 滚动条 ======================== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--color-gray-100); }
+    ::-webkit-scrollbar-thumb { background: var(--color-gray-300); border-radius: 3px; }
+
+    /* ======================== Hero 区域 ======================== */
+    .hero {
+      background: linear-gradient(135deg, #0a0e1a 0%, #0d1b3e 40%, #0f2d5e 70%, #1a1a2e 100%);
+      color: white;
+      padding: 80px 40px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(26,111,244,0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 30%, rgba(139,92,246,0.15) 0%, transparent 60%);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(26,111,244,0.2);
+      border: 1px solid rgba(26,111,244,0.4);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #60a5fa;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 8px; height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+    .hero-title {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 18px;
+      color: rgba(255,255,255,0.7);
+      max-width: 680px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+      position: relative;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .hero-meta-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .hero-meta-item .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+    }
+    .hero-meta-item .label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .hero-meta-divider {
+      width: 1px;
+      height: 40px;
+      background: rgba(255,255,255,0.15);
+      align-self: center;
+    }
+
+    /* ======================== 布局 ======================== */
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    .layout { display: grid; grid-template-columns: 260px 1fr; gap: 48px; align-items: start; padding: 48px 24px; max-width: 1240px; margin: 0 auto; }
+
+    /* ======================== 目录 ======================== */
+    .toc-sidebar {
+      position: sticky;
+      top: 24px;
+    }
+    .toc-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+      border: 1px solid var(--color-gray-200);
+    }
+    .toc-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-gray-400);
+      margin-bottom: 16px;
+    }
+    .toc-list { list-style: none; }
+    .toc-list li { margin: 2px 0; }
+    .toc-list a {
+      display: block;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--color-gray-600);
+      text-decoration: none;
+      transition: all 0.2s;
+      line-height: 1.4;
+    }
+    .toc-list a:hover {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      padding-left: 14px;
+    }
+    .toc-list a.active {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+    .toc-num {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      background: var(--color-gray-100);
+      border-radius: 4px;
+      text-align: center;
+      line-height: 18px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-right: 8px;
+      color: var(--color-gray-500);
+    }
+
+    /* ======================== 主内容 ======================== */
+    .main-content { min-width: 0; }
+
+    /* ======================== 章节 ======================== */
+    .section {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+      border: 1px solid var(--color-gray-200);
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--color-gray-100);
+    }
+    .section-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .section-num {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-gray-400);
+      margin-bottom: 4px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-gray-900);
+      line-height: 1.3;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--color-gray-800);
+      margin: 28px 0 12px;
+    }
+    h3:first-child { margin-top: 0; }
+    p {
+      color: var(--color-gray-600);
+      line-height: 1.8;
+      margin-bottom: 14px;
+    }
+    p:last-child { margin-bottom: 0; }
+
+    /* ======================== 数据卡片 ======================== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: var(--color-gray-50);
+      border: 1px solid var(--color-gray-200);
+      border-radius: 14px;
+      padding: 20px 16px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--color-gray-500);
+      line-height: 1.4;
+    }
+
+    /* ======================== 卡片网格 ======================== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .card {
+      background: var(--color-gray-50);
+      border: 1px solid var(--color-gray-200);
+      border-radius: 14px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+      border-color: var(--color-gray-300);
+    }
+    .card-icon { font-size: 24px; margin-bottom: 10px; }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--color-gray-800); margin-bottom: 8px; }
+    .card-body { font-size: 13px; color: var(--color-gray-600); line-height: 1.6; }
+
+    /* ======================== 层级框架 ======================== */
+    .layer-item {
+      display: flex;
+      gap: 16px;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .layer-item:hover {
+      background: var(--color-gray-50);
+      border-color: var(--color-gray-200);
+    }
+    .layer-num {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+      color: white;
+    }
+    .layer-content { flex: 1; }
+    .layer-name { font-size: 15px; font-weight: 700; color: var(--color-gray-800); margin-bottom: 4px; }
+    .layer-desc { font-size: 13px; color: var(--color-gray-600); margin-bottom: 6px; line-height: 1.5; }
+    .layer-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+    }
+
+    /* ======================== 引用 / 要点框 ======================== */
+    .callout {
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      display: flex;
+      gap: 12px;
+    }
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+    .callout-body { flex: 1; font-size: 14px; line-height: 1.6; }
+    .callout-body strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .callout.blue { background: var(--color-primary-light); border-left: 3px solid var(--color-primary); }
+    .callout.blue .callout-body { color: #1e40af; }
+    .callout.green { background: var(--color-success-light); border-left: 3px solid var(--color-success); }
+    .callout.green .callout-body { color: #065f46; }
+    .callout.orange { background: var(--color-orange-light); border-left: 3px solid var(--color-orange); }
+    .callout.orange .callout-body { color: #9a3412; }
+    .callout.purple { background: var(--color-purple-light); border-left: 3px solid var(--color-purple); }
+    .callout.purple .callout-body { color: #4c1d95; }
+
+    /* ======================== 时间线 ======================== */
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--color-primary), var(--color-purple), var(--color-teal));
+    }
+    .timeline-item { position: relative; margin-bottom: 28px; }
+    .timeline-dot {
+      position: absolute;
+      left: -24px;
+      top: 4px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px var(--color-primary);
+    }
+    .timeline-year {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .timeline-title { font-size: 15px; font-weight: 700; color: var(--color-gray-800); margin-bottom: 6px; }
+    .timeline-body { font-size: 13px; color: var(--color-gray-600); line-height: 1.6; }
+
+    /* ======================== 表格 ======================== */
+    .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 12px; border: 1px solid var(--color-gray-200); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th {
+      background: var(--color-gray-100);
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 12px 16px;
+      border-top: 1px solid var(--color-gray-100);
+      color: var(--color-gray-700);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody tr:hover { background: var(--color-gray-50); }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+    }
+    .tag.green { background: var(--color-success-light); color: #065f46; }
+    .tag.orange { background: var(--color-orange-light); color: #9a3412; }
+    .tag.purple { background: var(--color-purple-light); color: #4c1d95; }
+
+    /* ======================== 步骤列表 ======================== */
+    .steps { counter-reset: step; }
+    .step-item {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-content { flex: 1; padding-top: 5px; }
+    .step-title { font-size: 15px; font-weight: 700; color: var(--color-gray-800); margin-bottom: 4px; }
+    .step-body { font-size: 13px; color: var(--color-gray-600); line-height: 1.6; }
+
+    /* ======================== 进度条 ======================== */
+    .progress-item { margin-bottom: 16px; }
+    .progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .progress-name { font-size: 14px; font-weight: 600; color: var(--color-gray-700); }
+    .progress-pct { font-size: 13px; color: var(--color-primary); font-weight: 700; }
+    .progress-bar { height: 8px; background: var(--color-gray-100); border-radius: 4px; overflow: hidden; }
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+      transition: width 1s ease;
+    }
+
+    /* ======================== 工具卡片 ======================== */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .tool-card {
+      padding: 14px 16px;
+      border: 1px solid var(--color-gray-200);
+      border-radius: 10px;
+      background: white;
+      transition: all 0.2s;
+    }
+    .tool-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 2px 10px rgba(26,111,244,0.1);
+    }
+    .tool-name { font-size: 14px; font-weight: 700; color: var(--color-gray-800); margin-bottom: 4px; }
+    .tool-desc { font-size: 12px; color: var(--color-gray-500); line-height: 1.4; }
+    .tool-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    /* ======================== 企业案例卡片 ======================== */
+    .case-card {
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 16px;
+      border: 1px solid var(--color-gray-200);
+      background: white;
+    }
+    .case-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .case-logo {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+    }
+    .case-company { font-size: 17px; font-weight: 700; color: var(--color-gray-900); }
+    .case-tagline { font-size: 12px; color: var(--color-gray-500); }
+    .case-body { font-size: 14px; color: var(--color-gray-600); line-height: 1.7; margin-bottom: 12px; }
+    .case-result {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .case-metric {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--color-gray-50);
+      border: 1px solid var(--color-gray-200);
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
+    .metric-value { font-size: 16px; font-weight: 800; color: var(--color-success); }
+    .metric-label { font-size: 12px; color: var(--color-gray-500); }
+
+    /* ======================== 比较表格 ======================== */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .compare-col {
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid;
+    }
+    .compare-col.old {
+      background: var(--color-error-light);
+      border-color: #fca5a5;
+    }
+    .compare-col.new {
+      background: var(--color-success-light);
+      border-color: #6ee7b7;
+    }
+    .compare-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .compare-col.old .compare-title { color: #dc2626; }
+    .compare-col.new .compare-title { color: #059669; }
+    .compare-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--color-gray-700);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .compare-item::before {
+      content: '';
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+    .compare-col.old .compare-item::before { content: '✕'; color: #dc2626; font-weight: 700; }
+    .compare-col.new .compare-item::before { content: '✓'; color: #059669; font-weight: 700; }
+
+    /* ======================== 总结框 ======================== */
+    .summary-box {
+      background: linear-gradient(135deg, #0a0e1a, #0d1b3e);
+      border-radius: 20px;
+      padding: 40px;
+      color: white;
+      margin: 28px 0;
+    }
+    .summary-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .summary-body { font-size: 15px; color: rgba(255,255,255,0.8); line-height: 1.8; }
+    .summary-points { margin-top: 20px; display: grid; gap: 10px; }
+    .summary-point {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.6;
+    }
+    .summary-point::before {
+      content: '→';
+      color: #60a5fa;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ======================== 颜色变体 ======================== */
+    .bg-blue { background: linear-gradient(135deg, #dbeafe, #eff6ff); }
+    .bg-purple { background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
+    .bg-green { background: linear-gradient(135deg, #d1fae5, #ecfdf5); }
+    .bg-orange { background: linear-gradient(135deg, #ffedd5, #fff7ed); }
+    .text-primary { color: var(--color-primary); }
+    .text-purple { color: var(--color-purple); }
+    .text-teal { color: var(--color-teal); }
+
+    /* ======================== 底部 ======================== */
+    .footer {
+      background: var(--color-gray-900);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 40px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .footer strong { color: rgba(255,255,255,0.8); }
+
+    /* ======================== 响应式 ======================== */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc-sidebar { display: none; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .tool-grid { grid-template-columns: repeat(2, 1fr); }
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .hero { padding: 60px 20px 40px; }
+      .section { padding: 24px 20px; }
+      .card-grid { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .tool-grid { grid-template-columns: 1fr; }
+      .hero-meta { gap: 20px; }
+      .hero-meta-divider { display: none; }
+    }
+
+    /* ======================== 分隔线 ======================== */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-gray-200), transparent);
+      margin: 24px 0;
+    }
+
+    ul.styled-list {
+      list-style: none;
+      padding: 0;
+    }
+    ul.styled-list li {
+      padding: 6px 0 6px 20px;
+      position: relative;
+      font-size: 14px;
+      color: var(--color-gray-600);
+      line-height: 1.6;
+    }
+    ul.styled-list li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--color-primary);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== Hero ==================== -->
+<section class="hero">
+  <div class="hero-badge">深度研究报告 · 2026</div>
+  <h1 class="hero-title">
+    <span class="gradient-text">Harness Engineering</span><br>
+    驾驭工程全景解析
+  </h1>
+  <p class="hero-subtitle">
+    AI Agent 时代最重要的工程范式——如何通过系统化的约束、反馈与控制，让 AI 从"不可预测"走向"可信赖"
+  </p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <span class="value">2026</span>
+      <span class="label">研究年份</span>
+    </div>
+    <div class="hero-meta-divider"></div>
+    <div class="hero-meta-item">
+      <span class="value">22篇</span>
+      <span class="label">知识库文献</span>
+    </div>
+    <div class="hero-meta-divider"></div>
+    <div class="hero-meta-item">
+      <span class="value">8+</span>
+      <span class="label">一线实践团队</span>
+    </div>
+    <div class="hero-meta-divider"></div>
+    <div class="hero-meta-item">
+      <span class="value">6大</span>
+      <span class="label">核心工程支柱</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 主布局 ==================== -->
+<div class="layout">
+
+  <!-- 目录 -->
+  <aside class="toc-sidebar">
+    <div class="toc-card">
+      <div class="toc-title">目录导航</div>
+      <ul class="toc-list">
+        <li><a href="#s1"><span class="toc-num">01</span>概念与起源</a></li>
+        <li><a href="#s2"><span class="toc-num">02</span>核心定义</a></li>
+        <li><a href="#s3"><span class="toc-num">03</span>三次范式跃迁</a></li>
+        <li><a href="#s4"><span class="toc-num">04</span>六层架构体系</a></li>
+        <li><a href="#s5"><span class="toc-num">05</span>六大核心组件</a></li>
+        <li><a href="#s6"><span class="toc-num">06</span>四大护栏机制</a></li>
+        <li><a href="#s7"><span class="toc-num">07</span>典型失败模式</a></li>
+        <li><a href="#s8"><span class="toc-num">08</span>一线团队实践</a></li>
+        <li><a href="#s9"><span class="toc-num">09</span>工程实践与产品视角</a></li>
+        <li><a href="#s10"><span class="toc-num">10</span>工具生态全景</a></li>
+        <li><a href="#s11"><span class="toc-num">11</span>行业量化验证</a></li>
+        <li><a href="#s12"><span class="toc-num">12</span>工程师角色转变</a></li>
+        <li><a href="#s13"><span class="toc-num">13</span>落地场景与实施路线</a></li>
+        <li><a href="#s14"><span class="toc-num">14</span>未来趋势展望</a></li>
+        <li><a href="#s15"><span class="toc-num">15</span>研究总结</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="main-content">
+
+    <!-- ===== S1: 概念与起源 ===== -->
+    <section class="section" id="s1">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#dbeafe,#eff6ff);">🌱</div>
+        <div>
+          <div class="section-num">Section 01</div>
+          <h2 class="section-title">概念起源与背景</h2>
+        </div>
+      </div>
+
+      <p>2026年初，AI Agent 的能力已远超预期——OpenAI Codex 团队仅3名工程师，配合 AI 智能体，在5个月内完成了<strong>100万行代码</strong>，全程无人为编写。然而，这一突破也暴露出一个核心问题：当 AI 能自动生成大量代码时，工程领域的真正瓶颈，已不再是"让 AI 写得更好"，而是<strong>"让 AI 跑得更稳、更可控"</strong>。</p>
+
+      <div class="callout blue">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>概念提出</strong>
+          2026年2月5日，HashiCorp 联合创始人 Mitchell Hashimoto 首次明确提出 "Harness Engineering"（驾驭工程）术语。此后，OpenAI 在其百万行代码实验报告中正式采纳该术语，Martin Fowler 与 Birgitta Böckeler 联名撰文深度解读，Anthropic 随即发布《长时运行 Agent 的有效线束》，使该范式迅速成为2026年 AI 工程领域最受关注的方法论。
+        </div>
+      </div>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#1a6ff4;box-shadow:0 0 0 2px #1a6ff4;"></div>
+          <div class="timeline-year">2023–2024</div>
+          <div class="timeline-title">提示词工程（Prompt Engineering）时代</div>
+          <div class="timeline-body">工程师聚焦于优化单次对话指令，通过精心设计 Prompt 提升模型输出质量。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#8b5cf6;box-shadow:0 0 0 2px #8b5cf6;"></div>
+          <div class="timeline-year">2025</div>
+          <div class="timeline-title">上下文工程（Context Engineering）兴起</div>
+          <div class="timeline-body">Andrej Karpathy 提出 Context Engineering 比 Prompt Engineering 更重要，关注如何为 AI 组织和注入精准的上下文信息。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#14b8a6;box-shadow:0 0 0 2px #14b8a6;"></div>
+          <div class="timeline-year">2026.02</div>
+          <div class="timeline-title">Harness Engineering 正式提出</div>
+          <div class="timeline-body">Mitchell Hashimoto 提出驾驭工程，随即被 OpenAI、Anthropic、Stripe 等顶尖团队验证和采纳，清华大学等研究机构发布专项研究报告。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot" style="background:#f97316;box-shadow:0 0 0 2px #f97316;"></div>
+          <div class="timeline-year">2026.03–04</div>
+          <div class="timeline-title">爆发期：全行业共识形成</div>
+          <div class="timeline-body">业界形成六大行业共识，LangChain、Stripe Minions 等标志性实践案例涌现，Harness Engineering 成为 AI 工程师必备方法论。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S2: 核心定义 ===== -->
+    <section class="section" id="s2">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ede9fe,#f5f3ff);">📐</div>
+        <div>
+          <div class="section-num">Section 02</div>
+          <h2 class="section-title">核心定义与本质</h2>
+        </div>
+      </div>
+
+      <div class="callout purple">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>权威定义（清华大学 2026 研究报告）</strong>
+          Harness Engineering 是围绕 AI 智能体设计和构建<strong>约束机制、反馈回路、工作流控制和持续改进循环</strong>的系统工程实践。它不优化模型本身，而是优化模型运行的环境。核心哲学八字：<strong>"人类掌舵，智能体执行"</strong>。
+        </div>
+      </div>
+
+      <h3>核心等式</h3>
+      <div style="background:linear-gradient(135deg,#0a0e1a,#0d1b3e);border-radius:14px;padding:24px;text-align:center;margin:16px 0;">
+        <div style="font-size:28px;font-weight:800;color:white;letter-spacing:0.05em;">
+          Agent = Model + <span style="color:#60a5fa;">Harness</span>
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:center;gap:40px;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="font-size:13px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Model</div>
+            <div style="font-size:14px;color:white;">提供智能<br><span style="color:rgba(255,255,255,0.6);font-size:12px;">理解、推理、生成</span></div>
+          </div>
+          <div style="width:1px;background:rgba(255,255,255,0.1);align-self:stretch;"></div>
+          <div style="text-align:center;">
+            <div style="font-size:13px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Harness</div>
+            <div style="font-size:14px;color:#60a5fa;">提供工程保障<br><span style="color:rgba(255,255,255,0.6);font-size:12px;">约束、反馈、可靠性</span></div>
+          </div>
+        </div>
+      </div>
+
+      <h3>形象类比</h3>
+      <div class="card-grid">
+        <div class="card bg-blue">
+          <div class="card-icon">🎙️</div>
+          <div class="card-title">提示词工程</div>
+          <div class="card-body">对着马喊话：通过优化指令让 AI 产生更好的单次输出，但无法保证持续可靠性。</div>
+        </div>
+        <div class="card bg-purple">
+          <div class="card-icon">🗺️</div>
+          <div class="card-title">上下文工程</div>
+          <div class="card-body">给马看地图：为 AI 提供精准的信息输入，优化知识和上下文的组织方式。</div>
+        </div>
+        <div class="card bg-green">
+          <div class="card-icon">🛣️</div>
+          <div class="card-title">驾驭工程</div>
+          <div class="card-body">修建高速公路和护栏：为 AI 构建一整套可控、可追溯的运行环境，确保安全到达终点。</div>
+        </div>
+        <div class="card bg-orange">
+          <div class="card-icon">🐴</div>
+          <div class="card-title">核心哲学</div>
+          <div class="card-body">套上马具（Harness）的目的不是限制能力，而是让骏马安全、高效地奔向目标。</div>
+        </div>
+      </div>
+
+      <div class="callout green">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body">
+          <strong>关键洞见（Birgitta Böckeler）</strong>
+          "为了获得更高的 AI 自主性，运行时必须受到更严格的约束。"—— 更强的自主性与更严格的约束并不矛盾，反而相互依存。
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S3: 三次范式跃迁 ===== -->
+    <section class="section" id="s3">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#d1fae5,#ecfdf5);">🔄</div>
+        <div>
+          <div class="section-num">Section 03</div>
+          <h2 class="section-title">AI 工程的三次范式跃迁</h2>
+        </div>
+      </div>
+
+      <p>AI 工程已经历了三次本质性的范式跃迁，每一次跃迁都代表了人类驾驭 AI 能力的质的飞跃。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>范式</th>
+              <th>时间</th>
+              <th>核心问题</th>
+              <th>关注重点</th>
+              <th>类比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>提示词工程</strong><br><span class="tag">Prompt Engineering</span></td>
+              <td>2022–2024</td>
+              <td>如何与 AI 沟通</td>
+              <td>优化单次交互指令</td>
+              <td>对马喊话</td>
+            </tr>
+            <tr>
+              <td><strong>上下文工程</strong><br><span class="tag purple">Context Engineering</span></td>
+              <td>2025</td>
+              <td>如何组织信息</td>
+              <td>精准信息注入与管理</td>
+              <td>给马看地图</td>
+            </tr>
+            <tr>
+              <td><strong>驾驭工程</strong><br><span class="tag green">Harness Engineering</span></td>
+              <td>2026–</td>
+              <td>如何让 AI 可靠运行</td>
+              <td>系统化环境设计与约束</td>
+              <td>修高速公路和护栏</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout orange">
+        <div class="callout-icon">🔍</div>
+        <div class="callout-body">
+          <strong>重要转变</strong>
+          从"让 AI 更智能"到"让 AI 可靠工作"——这是 AI 工程在2026年发生的根本性转变。当前 AI 工程的瓶颈不是模型智能度，而是支撑模型稳定运行的基础设施。
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S4: 六层架构 ===== -->
+    <section class="section" id="s4">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ffedd5,#fff7ed);">🏗️</div>
+        <div>
+          <div class="section-num">Section 04</div>
+          <h2 class="section-title">六层架构体系（JavaGuide 权威版）</h2>
+        </div>
+      </div>
+
+      <p>Harness 可拆解为六层递进架构，构成从"定义边界"到"兜底恢复"的完整闭环设计系统。</p>
+
+      <div class="layer-item">
+        <div class="layer-num" style="background:linear-gradient(135deg,#1a6ff4,#0ea5e9);">L1</div>
+        <div class="layer-content">
+          <div class="layer-name">信息边界层（Information Boundary）</div>
+          <div class="layer-desc">定义 Agent 该知道什么、不该知道什么。通过角色定义与目标设定、无关信息裁剪、任务状态结构化组织，确保 Agent 在任何时候都运行在干净、相关的上下文中。</div>
+          <span class="layer-tag">🎯 优先级最高</span>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">L2</div>
+        <div class="layer-content">
+          <div class="layer-name">工具系统层（Tool System）</div>
+          <div class="layer-desc">定义 Agent 如何与外部世界交互。包含工具的选拔原则、调用时机控制、结果的提炼与反馈机制，以及工具白名单的动态注册管理。</div>
+          <span class="layer-tag">🔧 能力扩展</span>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num" style="background:linear-gradient(135deg,#14b8a6,#0d9488);">L3</div>
+        <div class="layer-content">
+          <div class="layer-name">执行编排层（Execution Orchestration）</div>
+          <div class="layer-desc">管理多步骤任务如何串联。让模型走完"理解目标→判断信息→分析→生成→检查"的完整执行轨道，支持 Plan-Execute 策略和确定性节点编排。</div>
+          <span class="layer-tag">⚙️ 流程控制</span>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num" style="background:linear-gradient(135deg,#f97316,#ea580c);">L4</div>
+        <div class="layer-content">
+          <div class="layer-name">记忆与状态层（Memory & State）</div>
+          <div class="layer-desc">解决长任务中间结果如何管理。独立管理当前任务状态、中间产物和长期记忆，防止系统混乱，支持会话间状态恢复与持久化。</div>
+          <span class="layer-tag">💾 状态持久</span>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num" style="background:linear-gradient(135deg,#ec4899,#db2777);">L5</div>
+        <div class="layer-content">
+          <div class="layer-name">评估与观测层（Evaluation & Observability）</div>
+          <div class="layer-desc">建立 Agent 如何知道自己做对了的机制。构建独立于生成过程的验证机制（如浏览器自动化、独立评估 Agent），实时追踪上下文利用率等关键指标。</div>
+          <span class="layer-tag">📊 可观测性</span>
+        </div>
+      </div>
+      <div class="layer-item">
+        <div class="layer-num" style="background:linear-gradient(135deg,#10b981,#059669);">L6</div>
+        <div class="layer-content">
+          <div class="layer-name">约束、校验与恢复层（Constraints & Recovery）</div>
+          <div class="layer-desc">出错了怎么办。预设规则拦截错误，提供重试或回滚机制，通过 Linter + CI 门禁机械化执行架构约束，设置最大迭代次数与停滞容忍阈值。</div>
+          <span class="layer-tag">🛡️ 优先级最高</span>
+        </div>
+      </div>
+
+      <div class="callout blue">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>投入建议</strong>
+          不要试图一开始就搭建所有六层。应优先投入 <strong>L1（信息边界）</strong> 和 <strong>L6（约束与恢复）</strong>，这两层的投入产出比最高，能最快带来可靠性提升。
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S5: 六大核心组件 ===== -->
+    <section class="section" id="s5">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#dbeafe,#eff6ff);">🔩</div>
+        <div>
+          <div class="section-num">Section 05</div>
+          <h2 class="section-title">六大核心组件（LangChain 技术框架）</h2>
+        </div>
+      </div>
+
+      <p>LangChain 将 Harness 视为智能体能力的放大器，解决裸模型四大硬伤：无记忆、不能执行代码、知识过时、无工作环境。Harness 的六大核心组件如下：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>组件</th>
+              <th>核心作用</th>
+              <th>关键功能</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag">01</span></td>
+              <td><strong>文件系统</strong></td>
+              <td>持久化存储与版本管理</td>
+              <td>存储中间结果、支持多 Agent 协作、结合 Git 实现版本追踪与回滚</td>
+            </tr>
+            <tr>
+              <td><span class="tag">02</span></td>
+              <td><strong>Bash + 沙箱</strong></td>
+              <td>代码执行与验证</td>
+              <td>运行代码、安装依赖、执行测试；沙箱保障安全隔离；实现"写→跑→修"自验证循环</td>
+            </tr>
+            <tr>
+              <td><span class="tag">03</span></td>
+              <td><strong>AGENTS.md</strong></td>
+              <td>长期记忆与知识注入</td>
+              <td>以文件形式存储领域知识、无需微调模型即可动态注入上下文、支持项目级规范与陷阱记录</td>
+            </tr>
+            <tr>
+              <td><span class="tag">04</span></td>
+              <td><strong>Web Search + MCP</strong></td>
+              <td>实时信息获取</td>
+              <td>突破模型知识时间限制；MCP 协议连接内部系统（数据库、监控工具）</td>
+            </tr>
+            <tr>
+              <td><span class="tag">05</span></td>
+              <td><strong>上下文工程</strong></td>
+              <td>上下文质量与效率管理</td>
+              <td>压缩历史信息避免"上下文腐烂"；动态加载/卸载任务相关技能；分层管理核心/工作/历史上下文</td>
+            </tr>
+            <tr>
+              <td><span class="tag">06</span></td>
+              <td><strong>编排 + Hooks</strong></td>
+              <td>多 Agent 协作与质量管控</td>
+              <td>任务分解、调度、结果聚合；Hooks 实现自动化检查（代码规范、安全审核）；支持动态层级化编排</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout green">
+        <div class="callout-icon">🧠</div>
+        <div class="callout-body">
+          <strong>System Prompt 是 Harness 的神经中枢</strong>
+          System Prompt 贯穿所有六个组件，定义 Agent 的角色边界与安全规则。模型决定"如何思考"，Harness 决定"看到什么、用什么工具、出错怎么办"。
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>AI 落地全链路六大核心（行业实战视角）</h3>
+      <p>从 AI 产品落地的全链路视角来看，Harness Engineering 可拆解为覆盖"从用户输入到结果返回"全链路管控的六大核心能力。以下内容整合自知识库多篇实战文章。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>核心能力</th>
+              <th>定义</th>
+              <th>关键难点与方案</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Prompt Engineering</strong></td>
+              <td>通过设计有效提示词引导模型输出预期结果</td>
+              <td>不同模型响应差异大需针对性适配；Prompt优化依赖经验迭代；模型版本迭代可能导致Prompt"退化"需持续维护</td>
+            </tr>
+            <tr>
+              <td><strong>Structured Output</strong></td>
+              <td>约束模型输出为程序可解析的结构化格式（如 JSON）</td>
+              <td>JSON Schema 校验、Grammar-based Decoding（outlines 库）、框架内置 Parser（如 LangChain Output Parser）</td>
+            </tr>
+            <tr>
+              <td><strong>Guardrails（安全护栏）</strong></td>
+              <td>在输入和输出侧添加安全层，防御恶意攻击和模型幻觉</td>
+              <td>输入侧：Prompt Injection 检测；输出侧：幻觉过滤、敏感信息泄露防护；工具：NVIDIA NeMo Guardrails、OpenAI Moderation API</td>
+            </tr>
+            <tr>
+              <td><strong>Agent Loop & Tool Use</strong></td>
+              <td>让 AI 通过调用外部工具执行实际操作，实现多步任务闭环</td>
+              <td>核心机制 ReAct（Reasoning + Acting）；常见问题：循环依赖需限深度、工具失败需重试+降级策略</td>
+            </tr>
+            <tr>
+              <td><strong>Memory Management</strong></td>
+              <td>为无状态模型提供短期（对话上下文）和长期（知识库）记忆能力</td>
+              <td>短期记忆通过截断/摘要压缩控制长度；长期记忆基于 RAG 从向量数据库检索；知识库需平衡检索质量与上下文稀释</td>
+            </tr>
+            <tr>
+              <td><strong>Evaluation & Monitoring</strong></td>
+              <td>通过持续评测和线上监控确保 AI 表现稳定可控</td>
+              <td>评测方法：人工/规则/AI评测(LLM-as-Judge)/自动化测试；监控指标：成功率、P50/P99延迟、Token消耗、错误分布</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== S6: 四大护栏 ===== -->
+    <section class="section" id="s6">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#d1fae5,#ecfdf5);">🛡️</div>
+        <div>
+          <div class="section-num">Section 06</div>
+          <h2 class="section-title">四大护栏机制（OpenAI 实践框架）</h2>
+        </div>
+      </div>
+
+      <p>基于 OpenAI Codex 团队实践，Harness Engineering 可归纳为四大核心护栏，这也是实践最广泛的工程化框架。</p>
+
+      <div class="card-grid">
+        <div class="card" style="border-top:3px solid #1a6ff4;">
+          <div class="card-icon">📚</div>
+          <div class="card-title">① 上下文工程（AGENTS.md）</div>
+          <div class="card-body">
+            提供动态、简洁的智能体指南，避免静态文档过时。
+            <ul class="styled-list" style="margin-top:8px;">
+              <li>使用渐进式披露结构（约100行索引文件）</li>
+              <li>每行规则对应一个历史失败案例</li>
+              <li>命令优先，代码示例优于文字描述</li>
+              <li>指向更详细的分层文档，按需加载</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card" style="border-top:3px solid #8b5cf6;">
+          <div class="card-icon">⛓️</div>
+          <div class="card-title">② 架构约束（机械化执行）</div>
+          <div class="card-body">
+            通过分层依赖模型和 Linter 规则，硬性约束代码结构。
+            <ul class="styled-list" style="margin-top:8px;">
+              <li>分层依赖：Types→Config→Repo→Service→UI</li>
+              <li>自定义 Linter，CI 阻断违规合并</li>
+              <li>Linter 错误消息包含修复指令</li>
+              <li>选择"无聊"技术，约束解决方案空间</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card" style="border-top:3px solid #14b8a6;">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">③ 反馈循环（闭环自验证）</div>
+          <div class="card-body">
+            实现"智能体审智能体"的自我检查机制。
+            <ul class="styled-list" style="margin-top:8px;">
+              <li>Agent-to-Agent 代码审核机制</li>
+              <li>自动化测试套件：失败时回传错误信息</li>
+              <li>四步循环：规划→构建→验证→修复</li>
+              <li>退出前强制执行检查清单</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card" style="border-top:3px solid #f97316;">
+          <div class="card-icon">🧹</div>
+          <div class="card-title">④ 熵管理（技术债务控制）</div>
+          <div class="card-body">
+            通过持续治理对抗代码库熵增。
+            <ul class="styled-list" style="margin-top:8px;">
+              <li>编码"黄金原则"，Linter 强制执行</li>
+              <li>定期运行后台清理 Agent（垃圾回收）</li>
+              <li>"文档园丁代理"自动修复过时内容</li>
+              <li>持续小额偿还技术债务，而非集中处理</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>护栏协同流程与工具链</h3>
+      <p>四大护栏形成完整的协同控制链路：用户请求 → 上下文工程 → 架构约束 → Agent 执行 → 反馈循环 → 熵管理 → 返回结果。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>护栏</th>
+              <th>核心组件</th>
+              <th>关键工具/脚本</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>上下文工程</strong></td>
+              <td>AGENTS.md 活文档、按需检索</td>
+              <td>agent_context_retriever.sh、context_injector.py</td>
+            </tr>
+            <tr>
+              <td><strong>架构约束</strong></td>
+              <td>分层依赖模型、Linter 规则</td>
+              <td>architecture_linter.py、lint-deps.py、lint-quality.py</td>
+            </tr>
+            <tr>
+              <td><strong>反馈循环</strong></td>
+              <td>Agent-to-Agent Review、自动化测试</td>
+              <td>review_agent.py、feedback_loop.sh、generate_test_suite.sh</td>
+            </tr>
+            <tr>
+              <td><strong>熵管理</strong></td>
+              <td>技术债务检测、文档园丁</td>
+              <td>tech_debt_detector.sh、doc_garden_agent.py、Critic/Refiner 脚本</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout blue">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>最佳实践要点（知识库实战总结）</strong>
+          上下文窗口使用率控制在 60% 以下，避免噪声；动态检索根据任务类型（read/write/debug/refactor）选择性加载；连续失败超过阈值（如 5 次）暂停执行防止雪崩（熔断机制）；定期清理每 3600 秒执行垃圾回收。
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S7: 典型失败模式 ===== -->
+    <section class="section" id="s7">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#fee2e2,#fef2f2);">⚠️</div>
+        <div>
+          <div class="section-num">Section 07</div>
+          <h2 class="section-title">AI Agent 典型失败模式</h2>
+        </div>
+      </div>
+
+      <p>了解 AI Agent 的典型失败模式，是设计有效 Harness 的前提。以下是业界总结的最常见失败场景：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>失败模式</th>
+              <th>表现描述</th>
+              <th>Harness 解决方案</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>一步到位（One-shotting）</strong></td>
+              <td>Agent 在单次会话中试图完成过多功能，上下文耗尽后留下半成品代码</td>
+              <td>上下文窗口监控 + 任务分解编排</td>
+            </tr>
+            <tr>
+              <td><strong>过早宣布胜利（Premature Victory）</strong></td>
+              <td>完成约 20% 即标记完成，缺少端到端验证</td>
+              <td>退出前强制检查清单 + 端到端测试验证</td>
+            </tr>
+            <tr>
+              <td><strong>过早标记功能完成</strong></td>
+              <td>代码提交但未测试，功能不可用</td>
+              <td>代码测试比监控（check_code_test_ratio.sh）+ 强制测试门禁</td>
+            </tr>
+            <tr>
+              <td><strong>复制坏模式</strong></td>
+              <td>Agent 放大代码库中的技术债务，复制并传播坏模式</td>
+              <td>架构约束（Linter）+ 代码风格门禁</td>
+            </tr>
+            <tr>
+              <td><strong>上下文焦虑</strong></td>
+              <td>当上下文窗口超过 40% 时，Agent 表现退化，输出质量显著下降</td>
+              <td>40% 阈值告警 + 上下文压缩重置策略</td>
+            </tr>
+            <tr>
+              <td><strong>无意义重试</strong></td>
+              <td>Agent 陷入重复尝试同一方案的死循环，无法自主识别停滞</td>
+              <td>最大迭代限制 + 状态指纹比对</td>
+            </tr>
+            <tr>
+              <td><strong>静默失败</strong></td>
+              <td>Agent 输出看似正常实则错误的结果，且不发出任何警告信号</td>
+              <td>独立评估 Agent + 生成者-评估者分离</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout orange">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>40% 上下文阈值法则</strong>
+          当上下文窗口利用率超过约 40% 时，Agent 输出质量会显著下降，进入"Dumb Zone"（幻觉增多、兜圈子、代码质量低）。生产环境中应设置 40% 阈值告警，触发上下文压缩或任务交接，而非继续填入信息。
+        </div>
+      </div>
+
+      <h3>上下文重置策略（Anthropic 方案）</h3>
+      <p>当 Agent 因上下文接近饱和而表现不佳时，Anthropic 采用"上下文重置"而非单纯压缩：将当前任务状态、已完成工作等结构化提取，然后启动一个全新的"干净"Agent，通过交接文档恢复状态。这类似于重启进程来解决内存泄漏问题。</p>
+    </section>
+
+    <!-- ===== S8: 一线团队实践 ===== -->
+    <section class="section" id="s8">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ede9fe,#f5f3ff);">🏢</div>
+        <div>
+          <div class="section-num">Section 08</div>
+          <h2 class="section-title">顶尖团队一线实践案例</h2>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-logo" style="background:linear-gradient(135deg,#1a6ff4,#0ea5e9);">O</div>
+          <div>
+            <div class="case-company">OpenAI Codex 团队</div>
+            <div class="case-tagline">百万行代码实验 · 架构约束实践</div>
+          </div>
+        </div>
+        <div class="case-body">
+          Codex 团队以3人小组完成了最具标志性的 Harness Engineering 实践。其核心方法论包括：<strong>地图式文档</strong>（精简100行索引 AGENTS.md 指向深层文档，渐进式披露）；<strong>机械化约束</strong>（自定义 Linter 配合 CI，强制架构分层不可违反）；<strong>可观测性集成</strong>（每个 git worktree 有独立可观测栈，实时追踪 Agent 状态）；<strong>主动熵管理</strong>（定期运行"垃圾回收" Agent，扫描偏差并自动提交重构 PR）；<strong>仓库即唯一事实源</strong>（所有状态存入 Git，无外部依赖）。
+        </div>
+        <div class="case-result">
+          <div class="case-metric">
+            <span class="metric-value">3人</span>
+            <span class="metric-label">工程师团队</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">100万行</span>
+            <span class="metric-label">代码生成量</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">5个月</span>
+            <span class="metric-label">完成时间</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">零行</span>
+            <span class="metric-label">人为编写代码</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-logo" style="background:linear-gradient(135deg,#ff7c4d,#f9a825);">A</div>
+          <div>
+            <div class="case-company">Anthropic</div>
+            <div class="case-tagline">双重智能体架构 · 长时程任务管理</div>
+          </div>
+        </div>
+        <div class="case-body">
+          Anthropic 针对长周期任务中"跨会话失忆"的核心痛点，创造了<strong>双重智能体架构</strong>：
+          <strong>初始化 Agent</strong>（项目开始时运行，生成详细需求列表 JSON、初始化脚本、进度文件，并进行初始 Git 提交）+ <strong>编码 Agent</strong>（后续会话中运行，每次先读进度文件和 Git 历史，约束为"每次只处理一个明确功能"，完成后立刻提交并更新进度）。此外，Anthropic 倡导随着模型能力提升，应定期<strong>简化 Harness</strong>，避免过度工程化。
+        </div>
+        <div class="case-result">
+          <div class="case-metric">
+            <span class="metric-value">✓</span>
+            <span class="metric-label">跨会话状态持久化</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">✓</span>
+            <span class="metric-label">Planner+Generator+Evaluator</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">4h</span>
+            <span class="metric-label">连续可靠编码时长</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-logo" style="background:linear-gradient(135deg,#5c6bc0,#7986cb);">S</div>
+          <div>
+            <div class="case-company">Stripe Minions</div>
+            <div class="case-tagline">高度自动化无人值守 · 混合状态机编排</div>
+          </div>
+        </div>
+        <div class="case-body">
+          Stripe 的 Minions 项目代表了 Harness Engineering 在生产环境的极致实践。核心模式为<strong>混合状态机编排</strong>：该确定的地方（如 lint、格式化、类型检查）由确定性代码执行；该灵活的地方（如实现具体功能、修复 Bug）交给 Agent。这种"确定性节点夹住概率性工作"的模式，实现了高度自动化的无人值守运行。
+        </div>
+        <div class="case-result">
+          <div class="case-metric">
+            <span class="metric-value">1300+</span>
+            <span class="metric-label">每周自动合并 PR 数</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">无人值守</span>
+            <span class="metric-label">运行模式</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-logo" style="background:linear-gradient(135deg,#10b981,#059669);">L</div>
+          <div>
+            <div class="case-company">LangChain</div>
+            <div class="case-tagline">纯 Harness 优化 · 性能质的飞跃</div>
+          </div>
+        </div>
+        <div class="case-body">
+          LangChain 团队通过一次震撼业界的实验，证明了 Harness 优化的价值：<strong>未改动任何模型参数</strong>，仅通过优化外部 Harness 环境（文档结构优化、验证回路建立、约束机制设计），其编码智能体在 <strong>Terminal Bench 2.0</strong> 的得分从 52.8% 提升至 66.5%，排名从第30位跃升至第5位。这一案例成为"瓶颈在基础设施，不在模型智能"的最有力佐证。
+        </div>
+        <div class="case-result">
+          <div class="case-metric">
+            <span class="metric-value">+13.7%</span>
+            <span class="metric-label">任务完成率提升</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">第30→第5</span>
+            <span class="metric-label">排行榜跃升</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-logo" style="background:linear-gradient(135deg,#000,#333);">Cc</div>
+          <div>
+            <div class="case-company">Claude Code（源码泄露分析）</div>
+            <div class="case-tagline">生产级 Harness 设计模式揭秘</div>
+          </div>
+        </div>
+        <div class="case-body">
+          Claude Code 意外暴露的 51.2 万行 TypeScript 源码揭示了生产级 Harness 的核心设计模式：<strong>三层记忆架构</strong>（轻量指针 MEMORY.md + 持久化存储 + 后台自动整合 autoDream）；<strong>插件式工具系统</strong>（40+ 个权限门控工具如 FileReadTool、BashTool）；<strong>子 Agent 模式</strong>（Fork 完全隔离、Teammate 协作、Worktree Git 隔离）；<strong>失败熔断机制</strong>（连续 3 次失败即停止重试）。
+        </div>
+        <div class="case-result">
+          <div class="case-metric">
+            <span class="metric-value">51.2万行</span>
+            <span class="metric-label">泄露源码规模</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">40+</span>
+            <span class="metric-label">权限门控工具</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-logo" style="background:linear-gradient(135deg,#f9f,#fff);color:#000;">V</div>
+          <div>
+            <div class="case-company">Vercel</div>
+            <div class="case-tagline">"约束优于能力"的典范</div>
+          </div>
+        </div>
+        <div class="case-body">
+          Vercel 的实践验证了一个反直觉的发现：<strong>削减 80% 的 Agent 工具</strong>反而实现了更少步骤、更低 Token 消耗和更快响应。这与 Can Bölük 的实验相呼应——仅调整工具格式（patch → hashline），同一模型的任务完成率从 6.7% 提升至 68.3%。
+        </div>
+        <div class="case-result">
+          <div class="case-metric">
+            <span class="metric-value">-80%</span>
+            <span class="metric-label">工具精简幅度</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">↓Token↓延迟</span>
+            <span class="metric-label">核心收益</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-header">
+          <div class="case-logo" style="background:linear-gradient(135deg,#14b8a6,#0d9488);">M</div>
+          <div>
+            <div class="case-company">Manus</div>
+            <div class="case-tagline">5 次架构重写的启示</div>
+          </div>
+        </div>
+        <div class="case-body">
+          Manus 团队在产品达到生产就绪状态前经历了 <strong>5 次架构重写</strong>，这一案例深刻说明了 Harness 需要持续迭代。初版 Harness 往往存在规则缺口和工具冗余，只有通过反复的失败分析和优化，才能逐步逼近工业级可靠性。
+        </div>
+        <div class="case-result">
+          <div class="case-metric">
+            <span class="metric-value">5次</span>
+            <span class="metric-label">架构重写次数</span>
+          </div>
+          <div class="case-metric">
+            <span class="metric-value">持续迭代</span>
+            <span class="metric-label">核心方法论</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S9: 十大工程实践 ===== -->
+    <section class="section" id="s9">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#d1fae5,#ecfdf5);">🛠️</div>
+        <div>
+          <div class="section-num">Section 09</div>
+          <h2 class="section-title">十大核心工程实践</h2>
+        </div>
+      </div>
+
+      <p>基于 OpenAI、Stripe、Anthropic、LangChain、Mitchell Hashimoto 等团队的一线经验，整理出 Harness Engineering 十大可落地实践：</p>
+
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">AGENTS.md：文档作为免疫系统</div>
+            <div class="step-body">每次 Agent 犯错，就在 AGENTS.md 中增加一条规则。使用渐进式披露结构，100行索引文件指向深层文档。每行规则都有具体的历史失败案例支撑。命令优先，代码示例优于文字说明。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">架构约束机械化执行</div>
+            <div class="step-body">通过 Linter 和 CI 门禁机械强制执行架构规则。定义严格的分层依赖方向并强制检查。Linter 错误消息必须包含修复指令，让 Agent 能自主修正。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">闭环自验证（Build-Verify Loop）</div>
+            <div class="step-body">规划→构建→验证→修复四步循环。强制 Agent 在退出前对照任务规范验证结果。采用"三明治推理"：规划（高推理）→实现（中推理）→验证（高推理）。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">让应用对 Agent 可见</div>
+            <div class="step-body">集成 Chrome DevTools Protocol 支持 DOM 快照和截图；为每个 git worktree 提供独立的日志、指标和追踪管道；让 Agent 能"看到"运行时状态，实现自主诊断。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">长时运行 Agent 的会话间记忆</div>
+            <div class="step-body">采用双体架构（初始化 Agent + 编码 Agent）。JSON 格式结构化记录进度，避免意外覆盖。每次会话先读取 Git 日志和进度文件，再开始新任务，实现状态连续性。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">熵治理（对抗 AI Slop）</div>
+            <div class="step-body">将架构规则直接写入仓库，由 Linter 强制执行。后台清理 Agent 定期扫描并自动提交重构 PR。持续小额偿还技术债务，避免集中爆发。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">7</div>
+          <div class="step-content">
+            <div class="step-title">并行管理与人类注意力分配</div>
+            <div class="step-body">稀缺资源从"计算"变为"人类注意力"。有人值守并行：同时运行少量 Agent，在自然休息时查看结果。无人值守并行：依赖成熟的 CI 和测试套件，实现全自动 PR 流程。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">8</div>
+          <div class="step-content">
+            <div class="step-title">Blueprint 模式：确定性与概率性交替</div>
+            <div class="step-body">在确定性代码节点（Linter、CI）和弹性 Agent 循环之间交替工作。确定性门禁夹住概率性工作，Agent 最多尝试2轮 CI，成功或放弃，避免无限重试。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">9</div>
+          <div class="step-content">
+            <div class="step-title">Trace 驱动的迭代改进</div>
+            <div class="step-body">基于实际运行轨迹（trace）优化 Harness，而非"凭感觉"调整。分析 LangSmith 等工具中的 traces，识别失败模式并针对性改进。建立吞吐量、质量、人类注意力消耗等度量体系。</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">10</div>
+          <div class="step-content">
+            <div class="step-title">渐进式采纳路径（Mitchell Hashimoto 六步）</div>
+            <div class="step-body">① 停止用聊天机器人编码，转向能执行程序的 Agent；② 手动做一遍再用 Agent 重做；③ 下班前启动 Agent 做探索性工作；④ 将确定性任务外包给 Agent；⑤ 每次错误后更新 AGENTS.md；⑥ 始终有 Agent 在后台运行。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>Qoder 工程实践：五大核心引擎与落地步骤</h3>
+      <p>以下内容整合自知识库文章《Qoder 工程实践：Harness Engineering 指南》（算力过载，2026年4月9日），展示了企业级落地实操细节。</p>
+
+      <div class="card-grid">
+        <div class="card" style="border-top:3px solid #1a6ff4;">
+          <div class="card-title">harness-creator 引擎</div>
+          <div class="card-body">分析代码库，自动生成基础设施：文档、lint 脚本、目录结构。识别项目分层架构，创建约束规则。</div>
+        </div>
+        <div class="card" style="border-top:3px solid #8b5cf6;">
+          <div class="card-title">harness-executor 引擎</div>
+          <div class="card-body">在基础设施中执行开发任务，自动检测并调用 creator 搭建环境。支持分层代理执行。</div>
+        </div>
+        <div class="card" style="border-top:3px solid #14b8a6;">
+          <div class="card-title">分层代理模型</div>
+          <div class="card-body">协调者（Coordinator）负责任务规划委派不写代码；子代理按任务分配不同模型；交叉 Review 避免盲区。</div>
+        </div>
+        <div class="card" style="border-top:3px solid #f97316;">
+          <div class="card-title">检查点与记忆机制</div>
+          <div class="card-body">每阶段保存检查点（含架构决策）；三类记忆：情景记忆（事件教训）、程序记忆（成功流程）、失败记忆。</div>
+        </div>
+      </div>
+
+      <h3>AI 产品经理视角：五大核心模块</h3>
+      <p>从产品经理视角（知识库文章《26年AI产品经理为什么必须掌握Harness Engineering》，人人都是产品经理，2026年3月30日），Harness 系统包含五大产品模块：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>模块</th>
+              <th>场景</th>
+              <th>方法</th>
+              <th>产品价值</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>按需索引（Progressive Disclosure）</strong></td>
+              <td>避免上下文过载</td>
+              <td>根目录 AGENTS.md 索引，Agent 按需动态调取子文档</td>
+              <td>提升信息信噪比</td>
+            </tr>
+            <tr>
+              <td><strong>代码拦截（Hard Constraints）</strong></td>
+              <td>防止违反架构规范</td>
+              <td>Lint + 测试脚本替代 Prompt "建议"</td>
+              <td>压缩犯错空间</td>
+            </tr>
+            <tr>
+              <td><strong>三层自动质检</strong></td>
+              <td>自动化验收 AI 产出</td>
+              <td>L1 硬性规则 → L2 执行测试 → L3 高推理 Agent 评审</td>
+              <td>"报错-自修复"闭环</td>
+            </tr>
+            <tr>
+              <td><strong>数据探针（Sensory Channels）</strong></td>
+              <td>让 Agent 感知运行效果</td>
+              <td>UI 自动化工具、日志查询、性能指标接口</td>
+              <td>增强自主闭环能力</td>
+            </tr>
+            <tr>
+              <td><strong>垃圾回收（Anti-Entropy）</strong></td>
+              <td>防控技术债爆炸</td>
+              <td>后台治理 Agent 定期扫描坏模式，影子沙箱验证</td>
+              <td>维持项目健康度</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout purple">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>推理三明治结构（Token ROI 优化）</strong>
+          顶层高推理模型拆解需求、生成验收矩阵 → 中层低推理模型执行原子任务 → 底层按需唤醒高推理模型做高风险质检。以最低成本实现工业级交付质量。
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S10: 工具生态 ===== -->
+    <section class="section" id="s10">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ffedd5,#fff7ed);">🔧</div>
+        <div>
+          <div class="section-num">Section 10</div>
+          <h2 class="section-title">工具生态全景</h2>
+        </div>
+      </div>
+
+      <h3>AI 编码 Agent 产品</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-name">OpenAI Codex</div>
+          <div class="tool-desc">最具代表性的 AI 编码 Agent，Harness Engineering 的核心实践场景</div>
+          <span class="tool-badge" style="background:#dbeafe;color:#1e40af;">核心产品</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">Claude Code</div>
+          <div class="tool-desc">Anthropic 出品，支持 SubAgents 机制和上下文重置，长任务表现出色</div>
+          <span class="tool-badge" style="background:#ede9fe;color:#4c1d95;">主流产品</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">GitHub Copilot</div>
+          <div class="tool-desc">深度集成 IDE，提供代码补全与智能建议，广泛应用于日常开发</div>
+          <span class="tool-badge" style="background:#d1fae5;color:#065f46;">广泛使用</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">Devin</div>
+          <div class="tool-desc">Cognition AI 出品，主打全自主软件工程师，支持长时程独立任务执行</div>
+          <span class="tool-badge" style="background:#dbeafe;color:#1e40af;">自主 Agent</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">Cursor</div>
+          <div class="tool-desc">AI-first IDE，将上下文管理深度集成到开发环境</div>
+          <span class="tool-badge" style="background:#d1fae5;color:#065f46;">开发工具</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">OpenClaw / QClaw</div>
+          <div class="tool-desc">国内 Agent 产品，专注企业级 AI 工程实践与多 Agent 协作</div>
+          <span class="tool-badge" style="background:#ffedd5;color:#9a3412;">国内产品</span>
+        </div>
+      </div>
+
+      <h3>智能体编排框架</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-name">LangChain / LangGraph</div>
+          <div class="tool-desc">最流行的 Agent 编排框架，提供 Harness 核心组件支持</div>
+          <span class="tool-badge" style="background:#dbeafe;color:#1e40af;">主流框架</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">AutoGen</div>
+          <div class="tool-desc">Microsoft 出品，专注多 Agent 对话与协作编排</div>
+          <span class="tool-badge" style="background:#ede9fe;color:#4c1d95;">多 Agent</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">CrewAI</div>
+          <div class="tool-desc">团队式 Agent 框架，角色分工明确，适合企业复杂工作流</div>
+          <span class="tool-badge" style="background:#d1fae5;color:#065f46;">团队协作</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">LlamaIndex</div>
+          <div class="tool-desc">专注 RAG 和知识检索，强化 Agent 的上下文工程能力</div>
+          <span class="tool-badge" style="background:#ffedd5;color:#9a3412;">知识检索</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">MCP 协议</div>
+          <div class="tool-desc">Model Context Protocol，标准化 Agent 与外部系统的连接协议</div>
+          <span class="tool-badge" style="background:#dbeafe;color:#1e40af;">协议标准</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">A2A 协议</div>
+          <div class="tool-desc">Agent-to-Agent 协议，实现多 Agent 标准化通信</div>
+          <span class="tool-badge" style="background:#ede9fe;color:#4c1d95;">新兴标准</span>
+        </div>
+      </div>
+
+      <h3>可观测性与评估工具</h3>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-name">Langfuse</div>
+          <div class="tool-desc">LLM 可观测性平台，追踪 Agent 运行轨迹、监控上下文利用率</div>
+          <span class="tool-badge" style="background:#d1fae5;color:#065f46;">可观测性</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">LangSmith</div>
+          <div class="tool-desc">LangChain 官方评估平台，基于 trace 分析驱动迭代优化</div>
+          <span class="tool-badge" style="background:#dbeafe;color:#1e40af;">评估平台</span>
+        </div>
+        <div class="tool-card">
+          <div class="tool-name">E2B 沙箱</div>
+          <div class="tool-desc">云端代码执行沙箱，为 Agent 提供安全隔离的运行环境</div>
+          <span class="tool-badge" style="background:#ffedd5;color:#9a3412;">安全沙箱</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S11: 量化验证 ===== -->
+    <section class="section" id="s11">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#d1fae5,#ecfdf5);">📊</div>
+        <div>
+          <div class="section-num">Section 11</div>
+          <h2 class="section-title">行业量化验证数据</h2>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">100万</div>
+          <div class="stat-label">OpenAI Codex 团队5个月代码生成量（行）</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">+13.7%</div>
+          <div class="stat-label">LangChain 纯 Harness 优化任务完成率提升</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">1300+</div>
+          <div class="stat-label">Stripe Minions 每周自动合并 PR 数量</div>
+        </div>
+      </div>
+      <div class="stat-grid" style="margin-top:0;">
+        <div class="stat-card">
+          <div class="stat-value">40%</div>
+          <div class="stat-label">上下文窗口利用率临界阈值（超过后质量下降）</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">第5</div>
+          <div class="stat-label">LangChain Terminal Bench 2.0 最终排名（从30位）</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">10倍</div>
+          <div class="stat-label">估算工程效率提升倍数（人类架构师+AI军团）</div>
+        </div>
+      </div>
+      <div class="stat-grid" style="margin-top:0;">
+        <div class="stat-card">
+          <div class="stat-value">6.7→68.3%</div>
+          <div class="stat-label">Can Bölük 实验仅调工具格式任务完成率提升</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">+26%</div>
+          <div class="stat-label">不同 Harness 实现下同一模型得分差异（实战手册）</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">65~80%</div>
+          <div class="stat-label">任务完成率（Harvest Engineering 框架下）</div>
+        </div>
+      </div>
+
+      <h3>行业六大共识（多机构交叉验证）</h3>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">瓶颈在基础设施，不在模型智能度</span>
+          <span class="progress-pct">100%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">文档需作为动态反馈循环，而非静态文件</span>
+          <span class="progress-pct">98%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:98%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">约束必须自动化（Linter / CI），不能依赖 Prompt</span>
+          <span class="progress-pct">96%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:96%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">上下文应按需注入，而非一次性堆砌</span>
+          <span class="progress-pct">95%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:95%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">复杂任务需分离思考与执行（Orchestrator+Worker）</span>
+          <span class="progress-pct">93%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:93%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">工程师角色转向"环境架构师"</span>
+          <span class="progress-pct">90%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== S12: 工程师角色转变 ===== -->
+    <section class="section" id="s12">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#dbeafe,#eff6ff);">👨‍💻</div>
+        <div>
+          <div class="section-num">Section 12</div>
+          <h2 class="section-title">工程师角色的范式转移</h2>
+        </div>
+      </div>
+
+      <p>Harness Engineering 正在重塑软件工程师的核心价值主张。这不是"AI 替代工程师"，而是"工程师角色升级"——从代码编写者，转变为 AI 系统的架构师与治理者。</p>
+
+      <div class="compare-grid">
+        <div class="compare-col old">
+          <div class="compare-title">⬅ 传统工程师（2020–2025）</div>
+          <div class="compare-item">手写代码、算法调试</div>
+          <div class="compare-item">直接解决问题</div>
+          <div class="compare-item">产出代码库</div>
+          <div class="compare-item">依赖个人技术栈积累</div>
+          <div class="compare-item">单机串行工作模式</div>
+          <div class="compare-item">关注"怎么写"</div>
+        </div>
+        <div class="compare-col new">
+          <div class="compare-title">➡ Harness 工程师（2026–）</div>
+          <div class="compare-item">系统设计、约束规则制定</div>
+          <div class="compare-item">设计 Agent 可用的系统</div>
+          <div class="compare-item">产出 Harness 系统与知识库</div>
+          <div class="compare-item">依赖 Harness 工程化能力</div>
+          <div class="compare-item">多 Agent 并行工作模式</div>
+          <div class="compare-item">关注"跑得多稳"</div>
+        </div>
+      </div>
+
+      <h3>Harness 工程师六大核心能力</h3>
+      <div class="card-grid">
+        <div class="card" style="border-left:3px solid #1a6ff4;">
+          <div class="card-title">1. 约束设计</div>
+          <div class="card-body">设计系统边界和行为规范，将模糊需求转化为可执行的工具链调用逻辑和验证断点。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #8b5cf6;">
+          <div class="card-title">2. 反馈回路设计</div>
+          <div class="card-body">建立自动化验证和质量控制闭环，设计"报错-自修复"机制，解放人力。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #14b8a6;">
+          <div class="card-title">3. 知识管理</div>
+          <div class="card-body">设计 AGENTS.md 文档体系，构建分层知识库，实现按需加载和渐进式披露。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #f97316;">
+          <div class="card-title">4. 可观测性设计</div>
+          <div class="card-body">构建 Agent 行为监控系统，追踪日志、指标、Trace，实现问题快速定位。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #ec4899;">
+          <div class="card-title">5. 多 Agent 编排</div>
+          <div class="card-body">设计规划者-执行者-评估者三角架构，管理任务分解、调度与结果聚合。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #10b981;">
+          <div class="card-title">6. 熵管理</div>
+          <div class="card-body">建立技术债扫描、清理和预防机制，维护系统长期健康度。</div>
+        </div>
+      </div>
+
+      <h3>新兴职业路径与薪资参考</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>岗位</th>
+              <th>核心职责</th>
+              <th>薪资参考（年）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>AI 智能体工程师</strong></td>
+              <td>设计和实现 Agent Harness，调度多 Agent 协作框架</td>
+              <td><span class="tag green">40–60万（初级）</span></td>
+            </tr>
+            <tr>
+              <td><strong>智能体架构师</strong></td>
+              <td>设计企业级 Agent 系统架构，制定 Harness 工程规范</td>
+              <td><span class="tag green">80–150万（资深）</span></td>
+            </tr>
+            <tr>
+              <td><strong>AI 质量保障工程师</strong></td>
+              <td>建立 Agent 输出的评估体系和验证机制</td>
+              <td><span class="tag">30–60万</span></td>
+            </tr>
+            <tr>
+              <td><strong>Agent 编排工程师</strong></td>
+              <td>设计和优化多 Agent 工作流，管理任务分解与调度</td>
+              <td><span class="tag">50–100万（资深）</span></td>
+            </tr>
+            <tr>
+              <td><strong>人机协作流程设计师</strong></td>
+              <td>设计 Human-in-the-loop 机制和 AI 协作工作流</td>
+              <td><span class="tag purple">跨职能新兴岗位</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>转型建议（按原有岗位）</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">后端工程师 → 系统架构师</div>
+          <div class="card-body">补充：智能体框架（LangChain/AutoGen）、Prompt 工程、上下文管理设计</div>
+        </div>
+        <div class="card">
+          <div class="card-title">前端工程师 → 产品体验设计师</div>
+          <div class="card-body">补充：交互设计优化、AI 生成内容质量把控、用户体验验证</div>
+        </div>
+        <div class="card">
+          <div class="card-title">测试工程师 → 自动化验证工程师</div>
+          <div class="card-body">补充：AI 代码审查、质量门禁设计、生成者-评估者分离架构</div>
+        </div>
+        <div class="card">
+          <div class="card-title">运维工程师 → 智能体运维编排师</div>
+          <div class="card-body">补充：云端资源调度、AI 运维工具、多 Agent 并行管理</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S13: 落地场景与挑战 ===== -->
+    <section class="section" id="s13">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#fef9c3,#fffbeb);">🏭</div>
+        <div>
+          <div class="section-num">Section 13</div>
+          <h2 class="section-title">落地场景与当前挑战</h2>
+        </div>
+      </div>
+
+      <h3>优先落地场景（清华大学研究报告）</h3>
+      <div class="card-grid">
+        <div class="card" style="border-left:3px solid #1a6ff4;">
+          <div class="card-icon">💻</div>
+          <div class="card-title">研发场景（最成熟）</div>
+          <div class="card-body">代码生成、Bug 修复、代码审查、文档生成。验证度最高，OpenAI/Anthropic/Stripe 均有成熟实践案例。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #8b5cf6;">
+          <div class="card-icon">🎧</div>
+          <div class="card-title">客服场景</div>
+          <div class="card-body">多轮对话管理、知识库检索、工单处理。需要强上下文管理和状态持久化能力。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #10b981;">
+          <div class="card-icon">📈</div>
+          <div class="card-title">销售运营场景</div>
+          <div class="card-body">线索分析、CRM 数据处理、销售报告生成。依赖工具调用和外部系统集成（MCP）。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #f97316;">
+          <div class="card-icon">🏭</div>
+          <div class="card-title">制造现场场景</div>
+          <div class="card-body">设备监控、异常检测、工艺优化。需要实时数据获取和确定性执行保障。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #14b8a6;">
+          <div class="card-icon">💰</div>
+          <div class="card-title">财务合规场景</div>
+          <div class="card-body">报告生成、合规检查、异常识别。对约束机制和可审计性要求极高。</div>
+        </div>
+        <div class="card" style="border-left:3px solid #ec4899;">
+          <div class="card-icon">🧠</div>
+          <div class="card-title">企业知识管理</div>
+          <div class="card-body">知识库建设、内容整理、智能检索。知识工程是企业护城河，隐性知识沉淀至关重要。</div>
+        </div>
+      </div>
+
+      <h3>当前面临的核心挑战</h3>
+      <div class="callout orange">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>行为验证难题</strong>
+          结构性质量（如代码风格、架构约束）已可通过 Linter + CI 控制，但产品行为正确性仍难以保证。AI 对正确输出和幻觉输出的置信度相似，需要人类严格审查。
+        </div>
+      </div>
+      <div class="callout purple">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>棕地项目适用性</strong>
+          现有成功案例大多基于绿地（Greenfield）项目或成熟的工程基础设施。对于存量遗留系统（棕地项目），Harness Engineering 的落地路径仍需更多探索。
+        </div>
+      </div>
+      <div class="callout blue">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>七大反模式（清华大学警示）</strong>
+          ① 将长提示词等同于驾驭框架；② 混淆层级关系；③ 盲目增加工具；④ 过度工程化不及时简化；⑤ 忽视可观测性建设；⑥ 缺乏回路闭环；⑦ 忽视熵管理的长期性。
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3>生产环境部署架构</h3>
+      <p>以下内容整合自知识库文章《AI Agent Harness Engineering 驾驭工程实战手册》（马哥Linux运维，2026年3月29日）。</p>
+
+      <div class="callout blue">
+        <div class="callout-icon">🏗️</div>
+        <div class="callout-body">
+          <strong>生产级部署架构</strong>
+          用户请求 → API Gateway → Orchestrator（任务分解） → Agent 集群 → Harness Layer（四大护栏） → 结果输出。Orchestrator 配置包括任务超时、并行 Agent 数、模型参数（temperature、max_tokens），支持 Kubernetes 部署。
+        </div>
+      </div>
+
+      <h3>实施路线图（知识库实战总结）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>阶段</th>
+              <th>时间</th>
+              <th>核心内容</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Phase 1：裸跑观察</strong></td>
+              <td>第1周</td>
+              <td>用原始 LLM API 运行简单任务，记录 Agent 典型失败点；创建 AGENTS.md，制定 3–5 条关键约束规则</td>
+            </tr>
+            <tr>
+              <td><strong>Phase 2：基础设施</strong></td>
+              <td>第2–4周</td>
+              <td>逐步添加规则（每错误一条新增一条）；加入 Linter/CI 检查；引入评估 Agent；搭建反馈循环和自动化测试</td>
+            </tr>
+            <tr>
+              <td><strong>Phase 3：闭环优化</strong></td>
+              <td>第5–8周</td>
+              <td>启用 Critic → Refiner 循环让 Harness 自我进化；性能优化、告警调优、文档完善、技术债务偿还</td>
+            </tr>
+            <tr>
+              <td><strong>Phase 4：自主运营</strong></td>
+              <td>第9周+</td>
+              <td>实现多 Agent 并行 + 熵管理；将高频成功模式固化为脚本（如 make add-endpoint NAME=foo）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>成熟度自检清单</h3>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">Level 0（裸奔）→ 创建 AGENTS.md</span>
+          <span class="progress-pct">入门</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">Level 1（有规则）→ 逐步添加约束规则</span>
+          <span class="progress-pct">基础</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">Level 2（机制保障）→ 加入 Linter/CI</span>
+          <span class="progress-pct">进阶</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">Level 3（自主验证）→ 评估 Agent + 反馈闭环</span>
+          <span class="progress-pct">高级</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+      </div>
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-name">Level 4（自主运营）→ 多 Agent 并行 + 熵管理</span>
+          <span class="progress-pct">成熟</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== S14: 未来趋势 ===== -->
+    <section class="section" id="s14">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#ede9fe,#f5f3ff);">🔮</div>
+        <div>
+          <div class="section-num">Section 14</div>
+          <h2 class="section-title">未来趋势展望（2026–2028）</h2>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>趋势方向</th>
+              <th>具体内容</th>
+              <th>时间预期</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>多智能体协同普及</strong></td>
+              <td>规划者-执行者-评估者三角架构成为标准模式，"人类架构师 + AI工程师军团"的组织形态普及</td>
+              <td><span class="tag">2026–2027</span></td>
+            </tr>
+            <tr>
+              <td><strong>MCP 协议标准化</strong></td>
+              <td>Model Context Protocol 成为 Agent 与外部系统连接的行业标准，打通数据孤岛</td>
+              <td><span class="tag">2026</span></td>
+            </tr>
+            <tr>
+              <td><strong>云端 Agent 普及</strong></td>
+              <td>Background Agent 在云端24小时运行，工程师仅在关键节点 Human-in-the-loop 介入</td>
+              <td><span class="tag purple">2027</span></td>
+            </tr>
+            <tr>
+              <td><strong>Harness 自简化趋势</strong></td>
+              <td>随着模型能力提升，Harness 中的冗余层级会被模型吸收，系统整体趋向简洁</td>
+              <td><span class="tag green">持续演进</span></td>
+            </tr>
+            <tr>
+              <td><strong>自然语言编程</strong></td>
+              <td>工程师通过自然语言描述系统架构和约束，AI 自动生成并维护 Harness 配置</td>
+              <td><span class="tag orange">2027–2028</span></td>
+            </tr>
+            <tr>
+              <td><strong>垂直领域 Harness 标准</strong></td>
+              <td>电商、AIoT、金融合规等领域出现标准化 Harness 模板，降低落地门槛</td>
+              <td><span class="tag purple">2027</span></td>
+            </tr>
+            <tr>
+              <td><strong>Harness 作为 Service Template</strong></td>
+              <td>团队从预定义 Harness 模板起步，如同 Spring Boot Starter，一键生成标准工程环境</td>
+              <td><span class="tag green">2027–2028</span></td>
+            </tr>
+            <tr>
+              <td><strong>Managed Agents 运维模式</strong></td>
+              <td>解耦 Session（日志）、Harness（路由）、Sandbox（执行环境），实现"牲口模式"运维，Agent 7×24 小时运行</td>
+              <td><span class="tag orange">2027</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout green">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>长期展望</strong>
+          "软件开发不会消失——它在民主化。随着 AI 处理实现，工程师晋升为架构师、策略师和伦理守护者。" 掌握 Harness Engineering 是 AI 时代工程师保持竞争力的核心路径。
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== S15: 研究总结 ===== -->
+    <section class="section" id="s15">
+      <div class="section-header">
+        <div class="section-icon" style="background:linear-gradient(135deg,#0a0e1a,#0d1b3e);">✨</div>
+        <div>
+          <div class="section-num">Section 15</div>
+          <h2 class="section-title">研究总结</h2>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <div class="summary-title">核心结论</div>
+        <div class="summary-body">
+          Harness Engineering 代表了软件工程在 AI 时代的根本性转变：从"如何让 AI 更智能"到"如何让 AI 可靠工作"。它不是一套具体的工具或框架，而是一种系统性的工程哲学——通过优化 AI 运行的环境，而非不断更换更强的模型，来实现可预测、可扩展、可信赖的 AI 系统。
+        </div>
+        <div class="summary-points">
+          <div class="summary-point">核心等式 <strong>Agent = Model + Harness</strong>，模型提供智能，Harness 让智能落地为可用的系统</div>
+          <div class="summary-point">六层架构体系（L1 信息边界 ~ L6 约束恢复）是构建可靠 Agent 的完整设计蓝图</div>
+          <div class="summary-point">四大护栏（上下文工程、架构约束、反馈循环、熵管理）是最可落地的实践框架</div>
+          <div class="summary-point">LangChain 案例证明：纯 Harness 优化即可带来排名第30→第5的质的飞跃</div>
+          <div class="summary-point">工程师角色从"代码编写者"升级为"AI 系统的架构师与治理者"</div>
+          <div class="summary-point">知识工程是企业护城河，私域知识的沉淀决定 AI 应用的深度与壁垒</div>
+          <div class="summary-point">每当 Agent 犯错，就是改善环境设计的机会——Harness 在实践中不断进化</div>
+        </div>
+      </div>
+
+      <p style="text-align:center;color:var(--color-gray-400);font-size:13px;margin-top:24px;">
+        本报告整合自腾讯 IMA 知识库【AI → Harness Engineering】22篇文献<br>
+        知识库文章来源：算力过载、马哥Linux运维、风间影月、阿衡的AI日常、人人都是产品经理、<br>
+        大数据与微服务、墨竹极客、AI数字智见、全球报告社等<br>
+        外部参考：清华大学研究报告、JavaGuide、菜鸟教程、腾讯云开发者、阿里云开发者、SegmentFault 等
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<!-- ==================== 底部 ==================== -->
+<footer class="footer">
+  <strong>Harness Engineering 深度研究报告 · 2026</strong><br>
+  基于腾讯 IMA 知识库【AI → Harness Engineering】22篇文献 + 8+外部权威平台综合整理<br>
+  知识库来源公众号：算力过载、马哥Linux运维、风间影月、阿衡的AI日常、人人都是产品经理、大数据与微服务、墨竹极客、AI数字智见等<br>
+  外部参考：清华大学研究报告、JavaGuide、菜鸟教程、腾讯云开发者、阿里云开发者、SegmentFault、简书、搜狐科技等<br><br>
+  <span style="font-size:12px;">研究日期：2026年4月 · 数据来源：公开技术文献与行业实践案例</span>
+</footer>
+
+<script>
+  // 目录高亮跟踪
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.toc-list a');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + entry.target.id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' });
+  
+  sections.forEach(s => observer.observe(s));
+
+  // 进度条动画
+  const progressBars = document.querySelectorAll('.progress-fill');
+  const progressObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.width = entry.target.style.width;
+      }
+    });
+  }, { threshold: 0.5 });
+  progressBars.forEach(bar => progressObserver.observe(bar));
+</script>
+</body>
+</html>
