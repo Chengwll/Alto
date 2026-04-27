@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>橙果科技 · AI进化全链路营销架构</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+  :root {
+    --orange: #FF6B00;
+    --orange-bright: #FF8C00;
+    --orange-glow: rgba(255, 107, 0, 0.6);
+    --cyan: #00D4FF;
+    --cyan-glow: rgba(0, 212, 255, 0.5);
+    --blue-deep: #0A0E2A;
+    --blue-mid: #0D1535;
+    --blue-light: #1A2550;
+    --blue-panel: rgba(13, 21, 53, 0.85);
+    --neon-green: #39FF14;
+    --purple: #8B5CF6;
+    --white: #E8F4FF;
+    --text-dim: rgba(232, 244, 255, 0.6);
+    --border-glow: rgba(0, 212, 255, 0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--blue-deep);
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--white);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .starfield {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .starfield::before, .starfield::after {
+    content: ''; position: absolute;
+    width: 2px; height: 2px; background: white; border-radius: 50%;
+    box-shadow:
+      120px 40px #fff, 300px 80px rgba(255,255,255,0.6), 500px 20px #fff,
+      700px 60px rgba(255,255,255,0.4), 900px 90px #fff, 100px 200px rgba(255,255,255,0.7),
+      250px 300px #fff, 450px 180px rgba(255,255,255,0.5), 650px 250px #fff,
+      850px 320px rgba(255,255,255,0.6), 50px 400px #fff, 200px 450px rgba(255,255,255,0.4),
+      400px 380px #fff, 600px 420px rgba(255,255,255,0.8), 800px 460px #fff,
+      1000px 30px rgba(255,255,255,0.5), 1100px 150px #fff, 1200px 280px rgba(255,255,255,0.6),
+      1300px 90px #fff, 1400px 200px rgba(255,255,255,0.4), 1500px 350px #fff,
+      1600px 50px rgba(255,255,255,0.7), 1700px 180px #fff, 1800px 310px rgba(255,255,255,0.5),
+      80px 550px #fff, 280px 620px rgba(255,255,255,0.6), 480px 580px #fff,
+      680px 650px rgba(255,255,255,0.4), 880px 700px #fff;
+    animation: twinkle 4s infinite alternate;
+  }
+  .starfield::after {
+    width: 1px; height: 1px;
+    box-shadow:
+      160px 100px rgba(0,212,255,0.8), 360px 160px rgba(255,107,0,0.6),
+      560px 120px rgba(0,212,255,0.7), 760px 200px rgba(255,107,0,0.5),
+      960px 140px rgba(0,212,255,0.8), 150px 350px rgba(255,107,0,0.6),
+      350px 420px rgba(0,212,255,0.7), 550px 380px rgba(255,107,0,0.5),
+      1050px 250px rgba(0,212,255,0.6), 1250px 330px rgba(255,107,0,0.7);
+    animation: twinkle 3s infinite alternate-reverse;
+  }
+  @keyframes twinkle {
+    0% { opacity: 0.3; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .grid-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .scanline {
+    position: fixed; top: -2px; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), rgba(0,212,255,0.6), rgba(0,212,255,0.3), transparent);
+    animation: scanlines 6s linear infinite; z-index: 1; pointer-events: none;
+  }
+  @keyframes scanlines {
+    0% { top: -2px; opacity: 0; } 5% { opacity: 1; } 95% { opacity: 1; } 100% { top: 100vh; opacity: 0; }
+  }
+
+  .data-stream { position: fixed; top: 0; width: 1px; height: 100vh; pointer-events: none; z-index: 0; overflow: hidden; }
+  .data-stream::after {
+    content: ''; position: absolute; top: -100px; left: 0;
+    width: 1px; height: 100px;
+    background: linear-gradient(to bottom, transparent, var(--cyan), transparent);
+    animation: stream-fall linear infinite; opacity: 0.4;
+  }
+  .stream-1 { left: 5%; } .stream-1::after { animation-duration: 4s; animation-delay: 0s; }
+  .stream-2 { left: 15%; } .stream-2::after { animation-duration: 3.5s; animation-delay: 1s; background: linear-gradient(to bottom, transparent, var(--orange), transparent); }
+  .stream-3 { left: 85%; } .stream-3::after { animation-duration: 5s; animation-delay: 2s; }
+  .stream-4 { left: 95%; } .stream-4::after { animation-duration: 4.5s; animation-delay: 0.5s; background: linear-gradient(to bottom, transparent, var(--orange), transparent); }
+  @keyframes stream-fall { 0% { top: -100px; } 100% { top: 100vh; } }
+
+  /* ===== WRAPPER ===== */
+  .wrapper {
+    position: relative; z-index: 2;
+    max-width: 1600px; margin: 0 auto; padding: 40px 30px 60px;
+  }
+
+  /* ===== HEADER ===== */
+  .header { text-align: center; margin-bottom: 50px; animation: fadeInDown 0.8s ease-out; }
+  @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,107,0,0.05));
+    border: 1px solid rgba(255,107,0,0.5); border-radius: 20px;
+    padding: 5px 16px; font-family: 'Orbitron', monospace; font-size: 11px;
+    font-weight: 600; color: var(--orange-bright); letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  .header-badge::before {
+    content: ''; width: 6px; height: 6px; background: var(--orange-bright);
+    border-radius: 50%; animation: pulse-dot 1.5s infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(255,107,0,0.7); }
+    50% { opacity: 0.8; transform: scale(1.3); box-shadow: 0 0 0 6px rgba(255,107,0,0); }
+  }
+
+  .main-title {
+    font-family: 'Orbitron', monospace; font-size: clamp(22px, 3vw, 38px); font-weight: 900;
+    background: linear-gradient(135deg, #FF8C00 0%, #FFD700 40%, #FF6B00 70%, var(--cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1.3; margin-bottom: 12px;
+    filter: drop-shadow(0 0 20px rgba(255,107,0,0.4));
+  }
+  .sub-title { font-size: 14px; color: var(--text-dim); letter-spacing: 3px; font-weight: 300; }
+  .header-line {
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--orange), var(--cyan), transparent);
+    margin: 16px auto 0; animation: line-glow 2s infinite alternate;
+  }
+  @keyframes line-glow { from { filter: brightness(0.7); width: 150px; } to { filter: brightness(1.4); width: 250px; } }
+
+  /* ===== PIPELINE ===== */
+  .pipeline {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin-bottom: 36px; position: relative;
+    animation: fadeIn 0.8s ease-out 0.3s both; flex-wrap: nowrap;
+    overflow-x: auto; padding: 0 10px;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .pipeline-stage { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+  .stage-node {
+    background: linear-gradient(135deg, rgba(13,21,53,0.9), rgba(26,37,80,0.9));
+    border: 1px solid; border-radius: 6px; padding: 7px 14px; font-size: 11px;
+    font-weight: 500; letter-spacing: 1px; white-space: nowrap; position: relative;
+    transition: all 0.3s ease; cursor: default;
+  }
+  .stage-node:hover { transform: translateY(-2px); filter: brightness(1.3); }
+  .stage-1 { border-color: rgba(0,212,255,0.6); color: var(--cyan); box-shadow: 0 0 12px rgba(0,212,255,0.2); }
+  .stage-2 { border-color: rgba(255,107,0,0.6); color: var(--orange-bright); box-shadow: 0 0 12px var(--orange-glow); }
+  .stage-3 { border-color: rgba(139,92,246,0.6); color: #A78BFA; box-shadow: 0 0 12px rgba(139,92,246,0.2); }
+  .stage-4 { border-color: rgba(57,255,20,0.6); color: var(--neon-green); box-shadow: 0 0 12px rgba(57,255,20,0.2); }
+  .stage-5 { border-color: rgba(0,212,255,0.6); color: var(--cyan); box-shadow: 0 0 12px rgba(0,212,255,0.2); }
+  .stage-6 { border-color: rgba(255,107,0,0.6); color: var(--orange-bright); box-shadow: 0 0 12px var(--orange-glow); }
+
+  .pipeline-arrow {
+    width: 36px; height: 2px;
+    background: linear-gradient(90deg, rgba(0,212,255,0.4), rgba(0,212,255,0.8), rgba(0,212,255,0.4));
+    position: relative; flex-shrink: 0;
+  }
+  .pipeline-arrow::after {
+    content: ''; position: absolute; right: -1px; top: 50%; transform: translateY(-50%);
+    border: 5px solid transparent; border-left: 7px solid rgba(0,212,255,0.8);
+  }
+  .pipeline-arrow .flow-dot {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 4px; height: 4px; background: var(--cyan); border-radius: 50%;
+    animation: flow-along 1.5s linear infinite; box-shadow: 0 0 6px var(--cyan);
+  }
+  @keyframes flow-along {
+    0% { left: 0; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { left: 100%; opacity: 0; }
+  }
+
+  /* ===== CARDS GRID ===== */
+  .cards-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 14px; margin-bottom: 40px;
+  }
+  @media (max-width: 1200px) { .cards-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 900px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ===== PRODUCT CARD ===== */
+  .product-card {
+    background: linear-gradient(145deg, rgba(13,21,53,0.95), rgba(10,14,42,0.98));
+    border: 1px solid var(--border-glow); border-radius: 12px;
+    padding: 0; position: relative; overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    animation: cardAppear 0.6s ease-out both; cursor: default;
+  }
+  .product-card:nth-child(1) { animation-delay: 0.1s; }
+  .product-card:nth-child(2) { animation-delay: 0.2s; }
+  .product-card:nth-child(3) { animation-delay: 0.3s; }
+  .product-card:nth-child(4) { animation-delay: 0.4s; }
+  .product-card:nth-child(5) { animation-delay: 0.5s; }
+  .product-card:nth-child(6) { animation-delay: 0.6s; }
+  .product-card:nth-child(7) { animation-delay: 0.7s; }
+  @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .product-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at top center, rgba(0,212,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .product-card::after {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    transition: left 0.5s ease; pointer-events: none;
+  }
+  .product-card:hover::after { left: 100%; }
+  .card-cyan { --card-accent: var(--cyan); --card-glow: var(--cyan-glow); }
+  .card-orange { --card-accent: var(--orange-bright); --card-glow: var(--orange-glow); }
+  .card-purple { --card-accent: #A78BFA; --card-glow: rgba(167,139,250,0.4); }
+  .card-green { --card-accent: var(--neon-green); --card-glow: rgba(57,255,20,0.3); }
+  .product-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: var(--card-accent, var(--cyan));
+    box-shadow: 0 0 20px var(--card-glow, var(--cyan-glow)), 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  /* ===== CARD ILLUSTRATION ===== */
+  .card-illustration {
+    width: 100%; height: 110px;
+    position: relative; overflow: hidden;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
+  }
+  .card-illustration svg {
+    width: 100%; height: 100%;
+    display: block;
+  }
+  .card-illustration::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, rgba(10,14,42,0.98));
+    pointer-events: none;
+  }
+
+  /* Card header */
+  .card-header { padding: 10px 14px 10px; border-bottom: 1px solid var(--border-glow); position: relative; }
+  .card-top-accent {
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--card-accent, var(--cyan)), transparent);
+    animation: accent-pulse 2s infinite alternate;
+  }
+  @keyframes accent-pulse { from { opacity: 0.5; } to { opacity: 1; filter: brightness(1.5); } }
+
+  .card-icon-row { display: flex; align-items: center; gap: 10px; }
+  .card-title-block { flex: 1; min-width: 0; }
+  .card-product-name {
+    font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
+    color: var(--white); letter-spacing: 0.5px; line-height: 1.3; margin-bottom: 3px;
+  }
+  .card-stage-tag {
+    display: inline-block; font-size: 9px; padding: 2px 7px;
+    border-radius: 10px; border: 1px solid; letter-spacing: 1px; font-weight: 500; opacity: 0.8;
+  }
+
+  /* Card body */
+  .card-body { padding: 12px 14px 14px; }
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .feature-item { display: flex; align-items: flex-start; gap: 8px; font-size: 10.5px; color: rgba(232, 244, 255, 0.75); line-height: 1.5; }
+  .feature-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--card-accent, var(--cyan)); flex-shrink: 0; margin-top: 5px;
+    box-shadow: 0 0 5px var(--card-glow, var(--cyan-glow)); animation: dot-blink 2s infinite;
+  }
+  .product-card:nth-child(2) .feature-dot { animation-delay: 0.3s; }
+  .product-card:nth-child(3) .feature-dot { animation-delay: 0.6s; }
+  .product-card:nth-child(4) .feature-dot { animation-delay: 0.9s; }
+  .product-card:nth-child(5) .feature-dot { animation-delay: 1.2s; }
+  .product-card:nth-child(6) .feature-dot { animation-delay: 1.5s; }
+  .product-card:nth-child(7) .feature-dot { animation-delay: 1.8s; }
+  @keyframes dot-blink { 0%, 80%, 100% { opacity: 1; } 40% { opacity: 0.3; } }
+
+  .card-status {
+    display: flex; align-items: center; gap: 5px; margin-top: 10px;
+    padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 9px; color: var(--text-dim); letter-spacing: 1px; font-family: 'Orbitron', monospace;
+  }
+  .status-led {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green);
+    animation: led-blink 1.5s infinite;
+  }
+  @keyframes led-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* hex corners */
+  .hex-corner { position: absolute; width: 12px; height: 12px; border-color: var(--cyan); border-style: solid; opacity: 0.6; }
+  .hex-tl { top: 0; left: 0; border-width: 2px 0 0 2px; border-radius: 2px 0 0 0; }
+  .hex-tr { top: 0; right: 0; border-width: 2px 2px 0 0; border-radius: 0 2px 0 0; }
+  .hex-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; border-radius: 0 0 0 2px; }
+  .hex-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; border-radius: 0 0 2px 0; }
+
+  /* ===== ROI BANNER ===== */
+  .roi-banner { text-align: center; margin-bottom: 28px; animation: fadeIn 0.8s ease-out 0.2s both; }
+  .roi-metrics {
+    display: inline-flex; gap: 0;
+    background: linear-gradient(135deg, rgba(13,21,53,0.9), rgba(10,14,42,0.9));
+    border: 1px solid rgba(0,212,255,0.2); border-radius: 12px; overflow: hidden;
+  }
+  .roi-item {
+    padding: 10px 24px; display: flex; flex-direction: column;
+    align-items: center; gap: 2px; border-right: 1px solid rgba(0,212,255,0.15);
+    position: relative; transition: all 0.3s;
+  }
+  .roi-item:last-child { border-right: none; }
+  .roi-item:hover { background: rgba(0,212,255,0.06); }
+  .roi-num {
+    font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900;
+    background: linear-gradient(135deg, var(--orange-bright), #FFD700);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1;
+  }
+  .roi-label { font-size: 10px; color: var(--text-dim); letter-spacing: 1.5px; }
+
+  /* ===== TECH FOUNDATION ===== */
+  .tech-foundation {
+    background: linear-gradient(135deg, rgba(13,21,53,0.9), rgba(10,14,42,0.95));
+    border: 1px solid rgba(0,212,255,0.2); border-radius: 14px;
+    padding: 24px 30px; position: relative; overflow: hidden;
+    animation: fadeIn 0.8s ease-out 1s both;
+  }
+  .tech-foundation::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--orange), var(--cyan), transparent);
+  }
+  .tech-foundation::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at bottom center, rgba(0,212,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .tech-label { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .tech-label-text { font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 700; color: var(--cyan); letter-spacing: 3px; text-transform: uppercase; }
+  .tech-label-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(0,212,255,0.5), transparent); }
+  .tech-pills { display: flex; gap: 12px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .tech-pill {
+    background: linear-gradient(135deg, rgba(26,37,80,0.8), rgba(13,21,53,0.9));
+    border: 1px solid rgba(0,212,255,0.3); border-radius: 8px;
+    padding: 10px 18px; font-size: 12px; font-weight: 500; color: var(--white);
+    letter-spacing: 1px; position: relative; overflow: hidden;
+    transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
+    flex: 1; min-width: 100px; justify-content: center;
+  }
+  .tech-pill:hover {
+    border-color: var(--cyan); background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(13,21,53,0.9));
+    transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,212,255,0.2);
+  }
+  .tech-pill-icon { font-size: 14px; opacity: 0.8; }
+  .tech-pill::before {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    height: 2px; width: 0;
+    background: linear-gradient(90deg, var(--cyan), var(--orange));
+    transition: width 0.4s ease;
+  }
+  .tech-pill:hover::before { width: 100%; }
+
+  /* SVG Animation classes */
+  .svg-pulse { animation: svgPulse 2s infinite alternate; }
+  .svg-rotate { animation: svgRotate 8s linear infinite; }
+  .svg-float { animation: svgFloat 3s ease-in-out infinite; }
+  .svg-blink { animation: svgBlink 1.5s infinite; }
+  .svg-dash { stroke-dasharray: 8 4; animation: svgDash 2s linear infinite; }
+  .svg-scan { animation: svgScan 2.5s linear infinite; }
+  @keyframes svgPulse { from { opacity: 0.4; } to { opacity: 1; } }
+  @keyframes svgRotate { from { transform-origin: center; transform: rotate(0deg); } to { transform-origin: center; transform: rotate(360deg); } }
+  @keyframes svgFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  @keyframes svgBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+  @keyframes svgDash { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+  @keyframes svgScan { 0% { transform: translateY(-110px); } 100% { transform: translateY(110px); } }
+
+  .count-up { animation: countUp 1.5s ease-out 1s both; }
+  @keyframes countUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="starfield"></div>
+<div class="grid-overlay"></div>
+<div class="scanline"></div>
+<div class="data-stream stream-1"></div>
+<div class="data-stream stream-2"></div>
+<div class="data-stream stream-3"></div>
+<div class="data-stream stream-4"></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge">AI SYSTEM · ACTIVE</div>
+    <h1 class="main-title">橙果科技 AI进化贯穿汽车新媒体营销全链路场景</h1>
+    <p class="sub-title">从内容生产到转化复盘 · 在每个节点提升运营效率与获客 ROI</p>
+    <div class="header-line"></div>
+  </div>
+
+  <!-- ROI METRICS -->
+  <div class="roi-banner">
+    <div class="roi-metrics">
+      <div class="roi-item"><span class="roi-num count-up">7</span><span class="roi-label">核心AI产品</span></div>
+      <div class="roi-item"><span class="roi-num count-up">6</span><span class="roi-label">全链路阶段</span></div>
+      <div class="roi-item"><span class="roi-num count-up">24/7</span><span class="roi-label">全天候运营</span></div>
+      <div class="roi-item"><span class="roi-num count-up">8</span><span class="roi-label">技术底座能力</span></div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="pipeline">
+    <div class="pipeline-stage"><div class="stage-node stage-1">📹 内容生产/制作</div></div>
+    <div class="pipeline-arrow"><div class="flow-dot"></div></div>
+    <div class="pipeline-stage"><div class="stage-node stage-2">📡 直播获客</div></div>
+    <div class="pipeline-arrow"><div class="flow-dot" style="animation-delay:0.5s"></div></div>
+    <div class="pipeline-stage"><div class="stage-node stage-3">🚀 投流加热</div></div>
+    <div class="pipeline-arrow"><div class="flow-dot" style="animation-delay:1s"></div></div>
+    <div class="pipeline-stage"><div class="stage-node stage-4">💡 线索转化</div></div>
+    <div class="pipeline-arrow"><div class="flow-dot" style="animation-delay:1.5s"></div></div>
+    <div class="pipeline-stage"><div class="stage-node stage-5">📊 复盘与矩阵管理</div></div>
+    <div class="pipeline-arrow"><div class="flow-dot" style="animation-delay:2s"></div></div>
+    <div class="pipeline-stage"><div class="stage-node stage-6">🛡️ 内容合规风控</div></div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards-grid">
+
+    <!-- ① 创意工厂 -->
+    <div class="product-card card-cyan">
+      <div class="card-top-accent"></div>
+      <div class="hex-corner hex-tl"></div><div class="hex-corner hex-tr"></div>
+      <div class="hex-corner hex-bl"></div><div class="hex-corner hex-br"></div>
+      <!-- Illustration: camera + film strip + AI sparks -->
+      <div class="card-illustration">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg1" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00D4FF" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#0A0E2A" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="glow-c">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <rect width="200" height="110" fill="url(#cg1)"/>
+          <!-- Grid lines -->
+          <line x1="0" y1="55" x2="200" y2="55" stroke="#00D4FF" stroke-width="0.3" stroke-opacity="0.3"/>
+          <line x1="100" y1="0" x2="100" y2="110" stroke="#00D4FF" stroke-width="0.3" stroke-opacity="0.3"/>
+          <!-- Camera body -->
+          <rect x="62" y="30" width="52" height="38" rx="5" fill="none" stroke="#00D4FF" stroke-width="1.5" filter="url(#glow-c)" class="svg-pulse"/>
+          <!-- Lens circle -->
+          <circle cx="88" cy="49" r="13" fill="none" stroke="#00D4FF" stroke-width="1.5" class="svg-pulse"/>
+          <circle cx="88" cy="49" r="8" fill="none" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.6"/>
+          <circle cx="88" cy="49" r="4" fill="#00D4FF" fill-opacity="0.3"/>
+          <circle cx="84" cy="45" r="1.5" fill="#00D4FF" fill-opacity="0.8"/>
+          <!-- Viewfinder bump -->
+          <rect x="89" y="24" width="16" height="8" rx="2" fill="none" stroke="#00D4FF" stroke-width="1" stroke-opacity="0.7"/>
+          <!-- Shutter button -->
+          <circle cx="107" cy="35" r="3" fill="#00D4FF" fill-opacity="0.5" stroke="#00D4FF" stroke-width="1"/>
+          <!-- Film strip left -->
+          <rect x="30" y="35" width="30" height="28" rx="2" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.6"/>
+          <rect x="33" y="37" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <rect x="43" y="37" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <rect x="33" y="45" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.2"/>
+          <rect x="43" y="45" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.2"/>
+          <rect x="33" y="53" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <rect x="43" y="53" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <!-- Film strip right (right panel) -->
+          <rect x="116" y="35" width="30" height="28" rx="2" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.6"/>
+          <rect x="119" y="37" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <rect x="129" y="37" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <rect x="119" y="45" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.2"/>
+          <rect x="129" y="45" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.2"/>
+          <rect x="119" y="53" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <rect x="129" y="53" width="7" height="5" rx="1" fill="#FF8C00" fill-opacity="0.3"/>
+          <!-- Platform icons bottom -->
+          <circle cx="68" cy="88" r="6" fill="none" stroke="#FF8C00" stroke-width="1" class="svg-pulse" style="animation-delay:0s"/>
+          <circle cx="85" cy="88" r="6" fill="none" stroke="#00D4FF" stroke-width="1" class="svg-pulse" style="animation-delay:0.4s"/>
+          <circle cx="102" cy="88" r="6" fill="none" stroke="#A78BFA" stroke-width="1" class="svg-pulse" style="animation-delay:0.8s"/>
+          <circle cx="119" cy="88" r="6" fill="none" stroke="#39FF14" stroke-width="1" class="svg-pulse" style="animation-delay:1.2s"/>
+          <!-- Connector lines to camera -->
+          <line x1="68" y1="82" x2="72" y2="68" stroke="#FF8C00" stroke-width="0.5" stroke-opacity="0.5" stroke-dasharray="3 2"/>
+          <line x1="85" y1="82" x2="85" y2="68" stroke="#00D4FF" stroke-width="0.5" stroke-opacity="0.5" stroke-dasharray="3 2"/>
+          <line x1="102" y1="82" x2="100" y2="68" stroke="#A78BFA" stroke-width="0.5" stroke-opacity="0.5" stroke-dasharray="3 2"/>
+          <!-- AI spark top right -->
+          <polygon points="165,15 168,22 162,22" fill="#00D4FF" fill-opacity="0.7" class="svg-blink"/>
+          <polygon points="155,25 157,30 153,30" fill="#FF8C00" fill-opacity="0.6" class="svg-blink" style="animation-delay:0.7s"/>
+        </svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon-row">
+          <div class="card-title-block">
+            <div class="card-product-name">创意工厂</div>
+            <span class="card-stage-tag" style="border-color:var(--cyan);color:var(--cyan);">内容生产</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="feature-list">
+          <li class="feature-item"><div class="feature-dot"></div><span>短视频、图文笔记创作</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>多平台一键分发</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>矩阵账号统一创作与分发</span></li>
+        </ul>
+        <div class="card-status"><div class="status-led"></div>ONLINE · CONTENT AI</div>
+      </div>
+    </div>
+
+    <!-- ② 直播手机 -->
+    <div class="product-card card-orange">
+      <div class="card-top-accent"></div>
+      <div class="hex-corner hex-tl"></div><div class="hex-corner hex-tr"></div>
+      <div class="hex-corner hex-bl"></div><div class="hex-corner hex-br"></div>
+      <!-- Illustration: phone + live stream + teleprompter scroll -->
+      <div class="card-illustration">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg2" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FF8C00" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#0A0E2A" stop-opacity="0"/>
+            </radialGradient>
+            <clipPath id="screen-clip">
+              <rect x="73" y="14" width="34" height="60" rx="2"/>
+            </clipPath>
+          </defs>
+          <rect width="200" height="110" fill="url(#cg2)"/>
+          <!-- Phone outline -->
+          <rect x="70" y="10" width="40" height="72" rx="5" fill="none" stroke="#FF8C00" stroke-width="1.8"/>
+          <!-- Screen area -->
+          <rect x="73" y="14" width="34" height="60" rx="2" fill="#0D1535" fill-opacity="0.8"/>
+          <!-- Scrolling teleprompter text -->
+          <g clip-path="url(#screen-clip)">
+            <g class="svg-scan" style="animation-duration:3s;">
+              <rect x="75" y="18" width="24" height="2" rx="1" fill="#FF8C00" fill-opacity="0.7"/>
+              <rect x="75" y="24" width="28" height="2" rx="1" fill="#FF8C00" fill-opacity="0.5"/>
+              <rect x="75" y="30" width="20" height="2" rx="1" fill="#FF8C00" fill-opacity="0.7"/>
+              <rect x="75" y="36" width="26" height="2" rx="1" fill="#FF8C00" fill-opacity="0.5"/>
+              <rect x="75" y="42" width="22" height="2" rx="1" fill="#FF8C00" fill-opacity="0.7"/>
+              <rect x="75" y="48" width="28" height="2" rx="1" fill="#FF8C00" fill-opacity="0.5"/>
+              <rect x="75" y="54" width="18" height="2" rx="1" fill="#FF8C00" fill-opacity="0.7"/>
+              <rect x="75" y="60" width="24" height="2" rx="1" fill="#FF8C00" fill-opacity="0.5"/>
+              <rect x="75" y="66" width="20" height="2" rx="1" fill="#FF8C00" fill-opacity="0.7"/>
+            </g>
+            <!-- Highlight line (current read line) -->
+            <rect x="73" y="38" width="34" height="6" rx="0" fill="#FF8C00" fill-opacity="0.15"/>
+          </g>
+          <!-- Home button -->
+          <circle cx="90" cy="86" r="3" fill="none" stroke="#FF8C00" stroke-width="1" fill-opacity="0"/>
+          <!-- LIVE badge -->
+          <rect x="76" y="16" width="18" height="7" rx="2" fill="#FF3B30" fill-opacity="0.85" class="svg-blink" style="animation-duration:1s"/>
+          <text x="85" y="21.5" font-size="5" fill="white" text-anchor="middle" font-family="Orbitron,monospace" font-weight="700">LIVE</text>
+          <!-- Signal waves left -->
+          <path d="M 52 40 Q 58 30 52 20" fill="none" stroke="#FF8C00" stroke-width="1.2" class="svg-pulse" style="animation-delay:0s"/>
+          <path d="M 46 44 Q 55 28 46 14" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.6" class="svg-pulse" style="animation-delay:0.3s"/>
+          <path d="M 40 47 Q 52 27 40 10" fill="none" stroke="#FF8C00" stroke-width="0.8" stroke-opacity="0.3" class="svg-pulse" style="animation-delay:0.6s"/>
+          <!-- Signal waves right -->
+          <path d="M 128 40 Q 122 30 128 20" fill="none" stroke="#FF8C00" stroke-width="1.2" class="svg-pulse" style="animation-delay:0.2s"/>
+          <path d="M 134 44 Q 125 28 134 14" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.6" class="svg-pulse" style="animation-delay:0.5s"/>
+          <path d="M 140 47 Q 128 27 140 10" fill="none" stroke="#FF8C00" stroke-width="0.8" stroke-opacity="0.3" class="svg-pulse" style="animation-delay:0.8s"/>
+          <!-- Person silhouette indicator -->
+          <circle cx="90" cy="97" r="4" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.5"/>
+          <line x1="90" y1="101" x2="90" y2="107" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.5"/>
+          <line x1="86" y1="104" x2="94" y2="104" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.5"/>
+          <!-- small comment icons -->
+          <rect x="148" y="30" width="28" height="16" rx="3" fill="none" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.5"/>
+          <rect x="151" y="33" width="18" height="1.5" rx="1" fill="#00D4FF" fill-opacity="0.4"/>
+          <rect x="151" y="37" width="12" height="1.5" rx="1" fill="#00D4FF" fill-opacity="0.3"/>
+          <polygon points="148,46 150,46 149,49" fill="#00D4FF" fill-opacity="0.4"/>
+          <rect x="148" y="54" width="24" height="14" rx="3" fill="none" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.4"/>
+          <rect x="151" y="57" width="14" height="1.5" rx="1" fill="#00D4FF" fill-opacity="0.3"/>
+          <rect x="151" y="61" width="18" height="1.5" rx="1" fill="#00D4FF" fill-opacity="0.2"/>
+          <polygon points="148,68 150,68 149,71" fill="#00D4FF" fill-opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon-row">
+          <div class="card-title-block">
+            <div class="card-product-name">直播手机</div>
+            <span class="card-stage-tag" style="border-color:var(--orange-bright);color:var(--orange-bright);">直播获客</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="feature-list">
+          <li class="feature-item"><div class="feature-dot"></div><span>直播间营销销售片装饰</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>滚动式口播提词脚本</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>真正实现一人开播</span></li>
+        </ul>
+        <div class="card-status"><div class="status-led"></div>ONLINE · BROADCAST AI</div>
+      </div>
+    </div>
+
+    <!-- ③ AI走播机器人 -->
+    <div class="product-card card-purple">
+      <div class="card-top-accent"></div>
+      <div class="hex-corner hex-tl"></div><div class="hex-corner hex-tr"></div>
+      <div class="hex-corner hex-bl"></div><div class="hex-corner hex-br"></div>
+      <!-- Illustration: humanoid robot + speech waves + 24hr clock -->
+      <div class="card-illustration">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg3" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#0A0E2A" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="200" height="110" fill="url(#cg3)"/>
+          <!-- Robot head -->
+          <rect x="80" y="12" width="40" height="32" rx="8" fill="none" stroke="#A78BFA" stroke-width="1.8" class="svg-float"/>
+          <!-- Eyes -->
+          <ellipse cx="91" cy="26" rx="5" ry="4" fill="none" stroke="#A78BFA" stroke-width="1.2"/>
+          <ellipse cx="91" cy="26" rx="2.5" ry="2" fill="#A78BFA" fill-opacity="0.8" class="svg-blink" style="animation-duration:3s"/>
+          <ellipse cx="109" cy="26" rx="5" ry="4" fill="none" stroke="#A78BFA" stroke-width="1.2"/>
+          <ellipse cx="109" cy="26" rx="2.5" ry="2" fill="#A78BFA" fill-opacity="0.8" class="svg-blink" style="animation-duration:3s;animation-delay:0.1s"/>
+          <!-- Mouth / speaker grill -->
+          <line x1="88" y1="36" x2="90" y2="36" stroke="#A78BFA" stroke-width="1.2"/>
+          <line x1="93" y1="36" x2="95" y2="36" stroke="#A78BFA" stroke-width="1.2"/>
+          <line x1="98" y1="36" x2="100" y2="36" stroke="#A78BFA" stroke-width="1.2"/>
+          <line x1="103" y1="36" x2="105" y2="36" stroke="#A78BFA" stroke-width="1.2"/>
+          <line x1="108" y1="36" x2="110" y2="36" stroke="#A78BFA" stroke-width="1.2"/>
+          <!-- Neck -->
+          <line x1="100" y1="44" x2="100" y2="52" stroke="#A78BFA" stroke-width="2" class="svg-float"/>
+          <!-- Body -->
+          <rect x="76" y="52" width="48" height="36" rx="6" fill="none" stroke="#A78BFA" stroke-width="1.5" class="svg-float"/>
+          <!-- Body panel lines -->
+          <line x1="100" y1="56" x2="100" y2="84" stroke="#A78BFA" stroke-width="0.5" stroke-opacity="0.4"/>
+          <rect x="82" y="60" width="14" height="10" rx="2" fill="#A78BFA" fill-opacity="0.1" stroke="#A78BFA" stroke-width="0.8"/>
+          <rect x="104" y="60" width="14" height="10" rx="2" fill="#A78BFA" fill-opacity="0.1" stroke="#A78BFA" stroke-width="0.8"/>
+          <!-- Arms -->
+          <line x1="76" y1="58" x2="60" y2="74" stroke="#A78BFA" stroke-width="2" class="svg-float"/>
+          <circle cx="57" cy="77" r="4" fill="none" stroke="#A78BFA" stroke-width="1.2" class="svg-float"/>
+          <line x1="124" y1="58" x2="140" y2="74" stroke="#A78BFA" stroke-width="2" class="svg-float"/>
+          <circle cx="143" cy="77" r="4" fill="none" stroke="#A78BFA" stroke-width="1.2" class="svg-float"/>
+          <!-- Wheel/base -->
+          <ellipse cx="100" cy="93" rx="18" ry="6" fill="none" stroke="#A78BFA" stroke-width="1" stroke-opacity="0.6"/>
+          <ellipse cx="100" cy="91" rx="10" ry="3" fill="#A78BFA" fill-opacity="0.1"/>
+          <!-- Sound waves from robot -->
+          <path d="M 150 28 Q 157 22 150 16" fill="none" stroke="#A78BFA" stroke-width="1.2" class="svg-pulse"/>
+          <path d="M 155 31 Q 165 22 155 13" fill="none" stroke="#A78BFA" stroke-width="1" stroke-opacity="0.6" class="svg-pulse" style="animation-delay:0.3s"/>
+          <path d="M 160 34 Q 173 22 160 10" fill="none" stroke="#A78BFA" stroke-width="0.8" stroke-opacity="0.3" class="svg-pulse" style="animation-delay:0.6s"/>
+          <!-- 24H clock badge -->
+          <circle cx="28" cy="25" r="14" fill="none" stroke="#A78BFA" stroke-width="1.2"/>
+          <text x="28" y="29" font-size="8" fill="#A78BFA" text-anchor="middle" font-family="Orbitron,monospace" font-weight="700" class="svg-blink">24H</text>
+          <!-- Clock hands -->
+          <line x1="28" y1="25" x2="28" y2="14" stroke="#A78BFA" stroke-width="1.5" class="svg-rotate" style="animation-duration:10s;transform-origin:28px 25px"/>
+          <line x1="28" y1="25" x2="36" y2="25" stroke="#A78BFA" stroke-width="1" class="svg-rotate" style="animation-duration:120s;transform-origin:28px 25px"/>
+        </svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon-row">
+          <div class="card-title-block">
+            <div class="card-product-name">AI走播机器人</div>
+            <span class="card-stage-tag" style="border-color:#A78BFA;color:#A78BFA;">直播获客</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="feature-list">
+          <li class="feature-item"><div class="feature-dot"></div><span>模拟真人不出播开播</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>全天候自动直播与互动</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>AI拟人化引导客户留资</span></li>
+        </ul>
+        <div class="card-status"><div class="status-led"></div>ONLINE · AVATAR AI</div>
+      </div>
+    </div>
+
+    <!-- ④ AI投流 -->
+    <div class="product-card card-cyan">
+      <div class="card-top-accent"></div>
+      <div class="hex-corner hex-tl"></div><div class="hex-corner hex-tr"></div>
+      <div class="hex-corner hex-bl"></div><div class="hex-corner hex-br"></div>
+      <!-- Illustration: dashboard monitor + realtime chart + ad targeting rings -->
+      <div class="card-illustration">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg4" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00D4FF" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#0A0E2A" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="200" height="110" fill="url(#cg4)"/>
+          <!-- Monitor frame -->
+          <rect x="20" y="10" width="110" height="72" rx="5" fill="none" stroke="#00D4FF" stroke-width="1.5"/>
+          <!-- Screen -->
+          <rect x="23" y="13" width="104" height="66" rx="3" fill="#050B20" fill-opacity="0.9"/>
+          <!-- Realtime line chart -->
+          <polyline points="28,68 42,58 55,62 68,45 80,50 92,38 104,42 116,28 120,30" fill="none" stroke="#00D4FF" stroke-width="1.8" stroke-linejoin="round"/>
+          <!-- Chart area fill -->
+          <polygon points="28,68 42,58 55,62 68,45 80,50 92,38 104,42 116,28 120,30 120,75 28,75" fill="#00D4FF" fill-opacity="0.07"/>
+          <!-- Data points glow -->
+          <circle cx="68" cy="45" r="2.5" fill="#00D4FF" class="svg-blink" style="animation-delay:0s"/>
+          <circle cx="92" cy="38" r="2.5" fill="#00D4FF" class="svg-blink" style="animation-delay:0.5s"/>
+          <circle cx="116" cy="28" r="2.5" fill="#00D4FF" class="svg-blink" style="animation-delay:1s"/>
+          <!-- Chart axis -->
+          <line x1="28" y1="20" x2="28" y2="75" stroke="#00D4FF" stroke-width="0.5" stroke-opacity="0.4"/>
+          <line x1="28" y1="75" x2="120" y2="75" stroke="#00D4FF" stroke-width="0.5" stroke-opacity="0.4"/>
+          <!-- Grid h-lines -->
+          <line x1="28" y1="35" x2="120" y2="35" stroke="#00D4FF" stroke-width="0.3" stroke-opacity="0.2" stroke-dasharray="3 3"/>
+          <line x1="28" y1="55" x2="120" y2="55" stroke="#00D4FF" stroke-width="0.3" stroke-opacity="0.2" stroke-dasharray="3 3"/>
+          <!-- Monitor stand -->
+          <line x1="75" y1="82" x2="75" y2="93" stroke="#00D4FF" stroke-width="2"/>
+          <line x1="58" y1="93" x2="92" y2="93" stroke="#00D4FF" stroke-width="1.5"/>
+          <!-- Targeting rings right side (ad targeting) -->
+          <circle cx="165" cy="55" r="24" fill="none" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.3" class="svg-pulse"/>
+          <circle cx="165" cy="55" r="17" fill="none" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.5" class="svg-pulse" style="animation-delay:0.4s"/>
+          <circle cx="165" cy="55" r="10" fill="none" stroke="#00D4FF" stroke-width="1" stroke-opacity="0.7" class="svg-pulse" style="animation-delay:0.8s"/>
+          <circle cx="165" cy="55" r="4" fill="#00D4FF" fill-opacity="0.4" class="svg-blink"/>
+          <!-- Crosshair -->
+          <line x1="165" y1="28" x2="165" y2="38" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.6"/>
+          <line x1="165" y1="72" x2="165" y2="82" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.6"/>
+          <line x1="138" y1="55" x2="148" y2="55" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.6"/>
+          <line x1="182" y1="55" x2="192" y2="55" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.6"/>
+          <!-- Budget display -->
+          <rect x="24" y="16" width="30" height="10" rx="2" fill="#00D4FF" fill-opacity="0.1"/>
+          <text x="39" y="23.5" font-size="5.5" fill="#00D4FF" text-anchor="middle" font-family="Orbitron,monospace">BUDGET</text>
+          <!-- ROI up arrow mini -->
+          <polygon points="108,20 112,27 104,27" fill="#39FF14" fill-opacity="0.8" class="svg-pulse" style="animation-delay:0.5s"/>
+        </svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon-row">
+          <div class="card-title-block">
+            <div class="card-product-name">AI 投流</div>
+            <span class="card-stage-tag" style="border-color:var(--cyan);color:var(--cyan);">投流加热</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="feature-list">
+          <li class="feature-item"><div class="feature-dot"></div><span>全天候智能实时盯盘</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>自动化投流与策略优化</span></li>
+        </ul>
+        <div class="card-status"><div class="status-led"></div>ONLINE · AD ENGINE AI</div>
+      </div>
+    </div>
+
+    <!-- ⑤ AI销售员 -->
+    <div class="product-card card-green">
+      <div class="card-top-accent"></div>
+      <div class="hex-corner hex-tl"></div><div class="hex-corner hex-tr"></div>
+      <div class="hex-corner hex-bl"></div><div class="hex-corner hex-br"></div>
+      <!-- Illustration: chat bubbles + funnel + conversion arrows -->
+      <div class="card-illustration">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg5" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#39FF14" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#0A0E2A" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="200" height="110" fill="url(#cg5)"/>
+          <!-- Conversion funnel center -->
+          <polygon points="80,12 120,12 112,35 88,35" fill="none" stroke="#39FF14" stroke-width="1.2" stroke-opacity="0.7"/>
+          <polygon points="88,35 112,35 106,55 94,55" fill="none" stroke="#39FF14" stroke-width="1.2" stroke-opacity="0.8"/>
+          <polygon points="94,55 106,55 102,70 98,70" fill="none" stroke="#39FF14" stroke-width="1.5" stroke-opacity="0.9"/>
+          <!-- Funnel fill layers -->
+          <polygon points="80,12 120,12 112,35 88,35" fill="#39FF14" fill-opacity="0.05"/>
+          <polygon points="88,35 112,35 106,55 94,55" fill="#39FF14" fill-opacity="0.08"/>
+          <polygon points="94,55 106,55 102,70 98,70" fill="#39FF14" fill-opacity="0.12"/>
+          <!-- Funnel labels -->
+          <text x="100" y="26" font-size="6" fill="#39FF14" text-anchor="middle" font-family="Orbitron,monospace" fill-opacity="0.8">LEADS</text>
+          <text x="100" y="48" font-size="5.5" fill="#39FF14" text-anchor="middle" font-family="Orbitron,monospace" fill-opacity="0.8">FOLLOW</text>
+          <!-- Drop at bottom -->
+          <circle cx="100" cy="77" r="5" fill="#39FF14" fill-opacity="0.4" class="svg-blink"/>
+          <line x1="100" y1="70" x2="100" y2="72" stroke="#39FF14" stroke-width="1.5"/>
+          <!-- Chat bubbles left -->
+          <rect x="18" y="18" width="44" height="18" rx="4" fill="none" stroke="#39FF14" stroke-width="1" stroke-opacity="0.7"/>
+          <rect x="21" y="21" width="28" height="2.5" rx="1" fill="#39FF14" fill-opacity="0.5"/>
+          <rect x="21" y="26" width="36" height="2.5" rx="1" fill="#39FF14" fill-opacity="0.35"/>
+          <polygon points="18,36 18,40 24,36" fill="#39FF14" fill-opacity="0.5"/>
+          <rect x="22" y="46" width="38" height="18" rx="4" fill="none" stroke="#39FF14" stroke-width="1" stroke-opacity="0.6"/>
+          <rect x="25" y="49" width="22" height="2.5" rx="1" fill="#39FF14" fill-opacity="0.4"/>
+          <rect x="25" y="55" width="30" height="2.5" rx="1" fill="#39FF14" fill-opacity="0.3"/>
+          <polygon points="22,64 22,68 28,64" fill="#39FF14" fill-opacity="0.4"/>
+          <!-- Chat bubbles right (AI reply) -->
+          <rect x="138" y="18" width="44" height="18" rx="4" fill="none" stroke="#00D4FF" stroke-width="1" stroke-opacity="0.7"/>
+          <rect x="141" y="21" width="32" height="2.5" rx="1" fill="#00D4FF" fill-opacity="0.5"/>
+          <rect x="141" y="26" width="24" height="2.5" rx="1" fill="#00D4FF" fill-opacity="0.35"/>
+          <polygon points="182,36 182,40 176,36" fill="#00D4FF" fill-opacity="0.5"/>
+          <rect x="134" y="46" width="44" height="18" rx="4" fill="none" stroke="#00D4FF" stroke-width="1" stroke-opacity="0.6"/>
+          <rect x="137" y="49" width="30" height="2.5" rx="1" fill="#00D4FF" fill-opacity="0.4"/>
+          <rect x="137" y="55" width="22" height="2.5" rx="1" fill="#00D4FF" fill-opacity="0.3"/>
+          <polygon points="178,64 178,68 172,64" fill="#00D4FF" fill-opacity="0.4"/>
+          <!-- Auto-reply indicator -->
+          <circle cx="160" cy="27" r="4" fill="#00D4FF" fill-opacity="0.2" stroke="#00D4FF" stroke-width="0.8" class="svg-pulse"/>
+          <text x="160" y="29.5" font-size="5" fill="#00D4FF" text-anchor="middle" font-family="Orbitron,monospace">AI</text>
+          <!-- CTA button at bottom -->
+          <rect x="74" y="88" width="52" height="14" rx="7" fill="none" stroke="#39FF14" stroke-width="1.2" class="svg-pulse" style="animation-delay:1s"/>
+          <text x="100" y="97.5" font-size="6" fill="#39FF14" text-anchor="middle" font-family="Orbitron,monospace" font-weight="700">立即留资</text>
+        </svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon-row">
+          <div class="card-title-block">
+            <div class="card-product-name">AI 销售员</div>
+            <span class="card-stage-tag" style="border-color:var(--neon-green);color:var(--neon-green);">线索转化</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="feature-list">
+          <li class="feature-item"><div class="feature-dot"></div><span>直播间弹幕智能互动营销</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>私信自动精准回复引导留资</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>主动触达潜客限进营销</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>二次回捞攻散游客</span></li>
+        </ul>
+        <div class="card-status"><div class="status-led"></div>ONLINE · SALES AI</div>
+      </div>
+    </div>
+
+    <!-- ⑥ 视频营销助手 -->
+    <div class="product-card card-orange">
+      <div class="card-top-accent"></div>
+      <div class="hex-corner hex-tl"></div><div class="hex-corner hex-tr"></div>
+      <div class="hex-corner hex-bl"></div><div class="hex-corner hex-br"></div>
+      <!-- Illustration: data dashboard + radar chart + matrix accounts -->
+      <div class="card-illustration">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg6" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FF8C00" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#0A0E2A" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="200" height="110" fill="url(#cg6)"/>
+          <!-- Radar chart center -->
+          <!-- Pentagon radar -->
+          <polygon points="100,14 120,30 113,54 87,54 80,30" fill="none" stroke="#FF8C00" stroke-width="0.5" stroke-opacity="0.4"/>
+          <polygon points="100,20 114,32 109,49 91,49 86,32" fill="none" stroke="#FF8C00" stroke-width="0.5" stroke-opacity="0.5"/>
+          <polygon points="100,26 108,34 105,44 95,44 92,34" fill="none" stroke="#FF8C00" stroke-width="0.5" stroke-opacity="0.6"/>
+          <!-- Radar axes -->
+          <line x1="100" y1="14" x2="100" y2="54" stroke="#FF8C00" stroke-width="0.4" stroke-opacity="0.4"/>
+          <line x1="100" y1="34" x2="120" y2="30" stroke="#FF8C00" stroke-width="0.4" stroke-opacity="0.4"/>
+          <line x1="100" y1="34" x2="113" y2="54" stroke="#FF8C00" stroke-width="0.4" stroke-opacity="0.4"/>
+          <line x1="100" y1="34" x2="87" y2="54" stroke="#FF8C00" stroke-width="0.4" stroke-opacity="0.4"/>
+          <line x1="100" y1="34" x2="80" y2="30" stroke="#FF8C00" stroke-width="0.4" stroke-opacity="0.4"/>
+          <!-- Data fill area -->
+          <polygon points="100,18 118,31 110,50 90,50 83,31" fill="#FF8C00" fill-opacity="0.12" stroke="#FF8C00" stroke-width="1.2" class="svg-pulse"/>
+          <!-- Radar vertices dots -->
+          <circle cx="100" cy="18" r="2.5" fill="#FF8C00" class="svg-blink" style="animation-delay:0s"/>
+          <circle cx="118" cy="31" r="2.5" fill="#FF8C00" class="svg-blink" style="animation-delay:0.4s"/>
+          <circle cx="110" cy="50" r="2.5" fill="#FF8C00" class="svg-blink" style="animation-delay:0.8s"/>
+          <circle cx="90" cy="50" r="2.5" fill="#FF8C00" class="svg-blink" style="animation-delay:1.2s"/>
+          <circle cx="83" cy="31" r="2.5" fill="#FF8C00" class="svg-blink" style="animation-delay:1.6s"/>
+          <!-- Dimension labels -->
+          <text x="100" y="10" font-size="4.5" fill="#FF8C00" text-anchor="middle" font-family="Orbitron,monospace" fill-opacity="0.8">互动</text>
+          <text x="127" y="31" font-size="4.5" fill="#FF8C00" text-anchor="start" font-family="Orbitron,monospace" fill-opacity="0.8">转化</text>
+          <text x="115" y="58" font-size="4.5" fill="#FF8C00" text-anchor="middle" font-family="Orbitron,monospace" fill-opacity="0.8">内容</text>
+          <text x="78" y="58" font-size="4.5" fill="#FF8C00" text-anchor="end" font-family="Orbitron,monospace" fill-opacity="0.8">留资</text>
+          <text x="66" y="31" font-size="4.5" fill="#FF8C00" text-anchor="end" font-family="Orbitron,monospace" fill-opacity="0.8">流量</text>
+          <!-- Matrix accounts grid right -->
+          <text x="145" y="14" font-size="5.5" fill="#FF8C00" text-anchor="middle" font-family="Orbitron,monospace" fill-opacity="0.7">MATRIX</text>
+          <circle cx="133" cy="26" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.6"/>
+          <circle cx="145" cy="26" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.7"/>
+          <circle cx="157" cy="26" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.6"/>
+          <circle cx="169" cy="26" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.5"/>
+          <circle cx="133" cy="38" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.7"/>
+          <circle cx="145" cy="38" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.6"/>
+          <circle cx="157" cy="38" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.5"/>
+          <circle cx="169" cy="38" r="5" fill="none" stroke="#FF8C00" stroke-width="1" stroke-opacity="0.7"/>
+          <!-- Account level indicators -->
+          <circle cx="133" cy="26" r="2" fill="#FF8C00" fill-opacity="0.6" class="svg-blink" style="animation-delay:0.1s"/>
+          <circle cx="145" cy="26" r="2" fill="#FF8C00" fill-opacity="0.7" class="svg-blink" style="animation-delay:0.5s"/>
+          <circle cx="157" cy="26" r="2" fill="#FF8C00" fill-opacity="0.4" class="svg-blink" style="animation-delay:0.9s"/>
+          <circle cx="169" cy="26" r="2" fill="#FF8C00" fill-opacity="0.8" class="svg-blink" style="animation-delay:1.3s"/>
+          <!-- Bar chart bottom -->
+          <rect x="18" y="72" width="8" height="20" rx="1" fill="#FF8C00" fill-opacity="0.4"/>
+          <rect x="30" y="65" width="8" height="27" rx="1" fill="#FF8C00" fill-opacity="0.5"/>
+          <rect x="42" y="58" width="8" height="34" rx="1" fill="#FF8C00" fill-opacity="0.6"/>
+          <rect x="54" y="52" width="8" height="40" rx="1" fill="#FF8C00" fill-opacity="0.7"/>
+          <line x1="15" y1="93" x2="65" y2="93" stroke="#FF8C00" stroke-width="0.8" stroke-opacity="0.5"/>
+          <!-- Trend arrow -->
+          <polyline points="18,88 30,80 42,73 54,66" fill="none" stroke="#39FF14" stroke-width="1.2" stroke-linejoin="round"/>
+          <polygon points="57,64 54,68 50,66" fill="#39FF14" fill-opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon-row">
+          <div class="card-title-block">
+            <div class="card-product-name">视频营销助手</div>
+            <span class="card-stage-tag" style="border-color:var(--orange-bright);color:var(--orange-bright);">复盘管理</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="feature-list">
+          <li class="feature-item"><div class="feature-dot"></div><span>账号矩阵管理系统</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>直播全方位数据复盘</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>账号分级诊断，五力模型评估</span></li>
+        </ul>
+        <div class="card-status"><div class="status-led"></div>ONLINE · ANALYTICS AI</div>
+      </div>
+    </div>
+
+    <!-- ⑦ AI风控 -->
+    <div class="product-card card-cyan">
+      <div class="card-top-accent"></div>
+      <div class="hex-corner hex-tl"></div><div class="hex-corner hex-tr"></div>
+      <div class="hex-corner hex-bl"></div><div class="hex-corner hex-br"></div>
+      <!-- Illustration: shield + firewall grid + blocked warnings -->
+      <div class="card-illustration">
+        <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg7" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00D4FF" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#0A0E2A" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="200" height="110" fill="url(#cg7)"/>
+          <!-- Main shield -->
+          <path d="M100,10 L128,22 L128,52 Q128,74 100,85 Q72,74 72,52 L72,22 Z"
+                fill="none" stroke="#00D4FF" stroke-width="2" class="svg-pulse"/>
+          <path d="M100,18 L122,28 L122,52 Q122,68 100,77 Q78,68 78,52 L78,28 Z"
+                fill="#00D4FF" fill-opacity="0.06"/>
+          <!-- Shield inner glow ring -->
+          <path d="M100,23 L116,31 L116,52 Q116,64 100,72 Q84,64 84,52 L84,31 Z"
+                fill="none" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.4"/>
+          <!-- Lock icon inside shield -->
+          <rect x="93" y="44" width="14" height="12" rx="2" fill="none" stroke="#00D4FF" stroke-width="1.3"/>
+          <path d="M95,44 Q95,38 100,38 Q105,38 105,44" fill="none" stroke="#00D4FF" stroke-width="1.3"/>
+          <circle cx="100" cy="49" r="2" fill="#00D4FF" fill-opacity="0.7"/>
+          <line x1="100" y1="51" x2="100" y2="54" stroke="#00D4FF" stroke-width="1.2"/>
+          <!-- Scanning hex grid -->
+          <line x1="72" y1="10" x2="72" y2="88" stroke="#00D4FF" stroke-width="0.3" stroke-opacity="0.2" stroke-dasharray="4 4"/>
+          <line x1="128" y1="10" x2="128" y2="88" stroke="#00D4FF" stroke-width="0.3" stroke-opacity="0.2" stroke-dasharray="4 4"/>
+          <!-- Alert/blocked tags -->
+          <rect x="140" y="14" width="44" height="16" rx="3" fill="#FF3B30" fill-opacity="0.15" stroke="#FF3B30" stroke-width="1" class="svg-blink" style="animation-duration:0.8s"/>
+          <text x="162" y="25" font-size="6" fill="#FF3B30" text-anchor="middle" font-family="Orbitron,monospace" font-weight="700">BLOCKED</text>
+          <rect x="145" y="38" width="38" height="16" rx="3" fill="#FF8C00" fill-opacity="0.12" stroke="#FF8C00" stroke-width="1" class="svg-blink" style="animation-duration:1.2s;animation-delay:0.4s"/>
+          <text x="164" y="49" font-size="5.5" fill="#FF8C00" text-anchor="middle" font-family="Orbitron,monospace" font-weight="700">WARNING</text>
+          <rect x="140" y="62" width="44" height="16" rx="3" fill="#39FF14" fill-opacity="0.08" stroke="#39FF14" stroke-width="1" class="svg-pulse"/>
+          <text x="162" y="73" font-size="5.5" fill="#39FF14" text-anchor="middle" font-family="Orbitron,monospace" font-weight="700">COMPLIANT</text>
+          <!-- Shield side scanline sweep -->
+          <line x1="72" y1="45" x2="128" y2="45" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.5" class="svg-scan" style="animation-duration:2s"/>
+          <!-- Corner brackets firewall -->
+          <rect x="14" y="14" width="40" height="28" rx="2" fill="none" stroke="#00D4FF" stroke-width="0.6" stroke-opacity="0.3" stroke-dasharray="3 3"/>
+          <text x="34" y="26" font-size="5" fill="#00D4FF" text-anchor="middle" font-family="Orbitron,monospace" fill-opacity="0.6">SCAN</text>
+          <text x="34" y="34" font-size="5" fill="#00D4FF" text-anchor="middle" font-family="Orbitron,monospace" fill-opacity="0.6">ENGINE</text>
+          <!-- Animated scanning line in small box -->
+          <rect x="14" y="50" width="40" height="32" rx="2" fill="none" stroke="#00D4FF" stroke-width="0.6" stroke-opacity="0.3" stroke-dasharray="3 3"/>
+          <line x1="16" y1="56" x2="52" y2="56" stroke="#00D4FF" stroke-width="0.6" stroke-opacity="0.3"/>
+          <line x1="16" y1="61" x2="52" y2="61" stroke="#00D4FF" stroke-width="0.6" stroke-opacity="0.3"/>
+          <line x1="16" y1="66" x2="52" y2="66" stroke="#00D4FF" stroke-width="0.6" stroke-opacity="0.3"/>
+          <line x1="16" y1="71" x2="52" y2="71" stroke="#00D4FF" stroke-width="0.6" stroke-opacity="0.3"/>
+          <line x1="16" y1="76" x2="52" y2="76" stroke="#00D4FF" stroke-width="0.6" stroke-opacity="0.3"/>
+          <!-- Scan cursor in text box -->
+          <rect x="16" y="61" width="2" height="5" rx="0.5" fill="#00D4FF" fill-opacity="0.8" class="svg-blink" style="animation-duration:0.6s"/>
+          <!-- Bottom: shield protection scope arc -->
+          <path d="M60,95 Q100,78 140,95" fill="none" stroke="#00D4FF" stroke-width="0.8" stroke-opacity="0.4" stroke-dasharray="4 3"/>
+        </svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon-row">
+          <div class="card-title-block">
+            <div class="card-product-name">AI 风控</div>
+            <span class="card-stage-tag" style="border-color:var(--cyan);color:var(--cyan);">合规风控</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="feature-list">
+          <li class="feature-item"><div class="feature-dot"></div><span>违禁词/乱价/夸大宣传实时监测</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>弹幕黑水军智能拦截</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>防外部同行截客</span></li>
+          <li class="feature-item"><div class="feature-dot"></div><span>支持自定义风控规则与策略</span></li>
+        </ul>
+        <div class="card-status"><div class="status-led"></div>ONLINE · COMPLIANCE AI</div>
+      </div>
+    </div>
+
+  </div><!-- /cards-grid -->
+
+  <!-- TECH FOUNDATION -->
+  <div class="tech-foundation">
+    <div class="tech-label">
+      <span class="tech-label-text">⚙ 技术基建支撑</span>
+      <div class="tech-label-line"></div>
+      <span style="font-family:Orbitron,monospace;font-size:10px;color:var(--text-dim);letter-spacing:2px;white-space:nowrap;">TECH INFRASTRUCTURE</span>
+    </div>
+    <div class="tech-pills">
+      <div class="tech-pill"><span class="tech-pill-icon">🧬</span>模型优选</div>
+      <div class="tech-pill"><span class="tech-pill-icon">🏋️</span>模型训练</div>
+      <div class="tech-pill"><span class="tech-pill-icon">🚢</span>模型部署</div>
+      <div class="tech-pill"><span class="tech-pill-icon">🔢</span>算法设计</div>
+      <div class="tech-pill"><span class="tech-pill-icon">⚡</span>算力运维</div>
+      <div class="tech-pill"><span class="tech-pill-icon">🏷️</span>数据标注</div>
+      <div class="tech-pill"><span class="tech-pill-icon">📝</span>上下文工程</div>
+      <div class="tech-pill"><span class="tech-pill-icon">📚</span>知识库构建</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Animated counting
+document.querySelectorAll('.count-up').forEach(el => {
+  const target = el.textContent;
+  if (!isNaN(target)) {
+    let count = 0;
+    const end = parseInt(target);
+    const duration = 1500;
+    const step = end / (duration / 16);
+    const timer = setInterval(() => {
+      count = Math.min(count + step, end);
+      el.textContent = Math.floor(count);
+      if (count >= end) clearInterval(timer);
+    }, 16);
+  }
+});
+
+// Staggered card entrance
+const cards = document.querySelectorAll('.product-card');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.style.animationPlayState = 'running';
+  });
+}, { threshold: 0.1 });
+cards.forEach(card => { card.style.animationPlayState = 'paused'; observer.observe(card); });
+
+// Tech pill hover
+document.querySelectorAll('.tech-pill').forEach(pill => {
+  pill.addEventListener('mouseenter', () => { pill.style.transform = 'translateY(-3px) scale(1.03)'; });
+  pill.addEventListener('mouseleave', () => { pill.style.transform = ''; });
+});
+</script>
+</body>
+</html>
