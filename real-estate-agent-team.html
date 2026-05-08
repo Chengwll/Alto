@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>房产营销龙虾版 · AgentTeam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #030712;
+  --surface: #0f172a;
+  --panel: #1e293b;
+  --border: rgba(148, 163, 184, 0.1);
+  --glow: #00d4ff;
+  --col1: #00d4ff;
+  --col2: #ff8c42;
+  --col3: #fbbf24;
+  --col4: #34d399;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --danger: #ef4444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════
+   BACKGROUND EFFECTS
+═══════════════════════════════════════ */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Gradient orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: orbFloat 20s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.3), transparent 70%);
+  top: -200px; left: -100px;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.2), transparent 70%);
+  bottom: -150px; right: -100px;
+  animation-delay: -7s;
+}
+
+.orb-3 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+  top: 40%; left: 50%;
+  animation-delay: -14s;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+/* Grid pattern */
+.grid-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Floating particles */
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: var(--glow);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleRise 15s ease-in-out infinite;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 25%; animation-delay: -2s; background: var(--col2); }
+.particle:nth-child(3) { left: 40%; animation-delay: -4s; background: var(--col3); }
+.particle:nth-child(4) { left: 55%; animation-delay: -6s; background: var(--col4); }
+.particle:nth-child(5) { left: 70%; animation-delay: -8s; }
+.particle:nth-child(6) { left: 85%; animation-delay: -10s; background: var(--col2); }
+
+@keyframes particleRise {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.2; }
+  100% { transform: translateY(-100px) scale(1); opacity: 0; }
+}
+
+/* Scan line */
+.scan-line {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+  animation: scanMove 8s linear infinite;
+  z-index: 100;
+}
+
+@keyframes scanMove {
+  0% { top: -2px; }
+  100% { top: 100vh; }
+}
+
+/* ═══════════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════════ */
+.stage {
+  position: relative;
+  z-index: 1;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+  padding: 40px 0;
+  position: relative;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(52, 211, 153, 0.1));
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 100px;
+  padding: 10px 24px;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--glow);
+  margin-bottom: 28px;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.header-badge svg {
+  width: 18px; height: 18px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.title {
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  margin-bottom: 20px;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.title-line1 {
+  background: linear-gradient(135deg, #fff 0%, var(--glow) 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.title-line2 {
+  display: block;
+  position: relative;
+}
+
+.title-line2::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--col4), transparent);
+  border-radius: 2px;
+}
+
+.subtitle {
+  font-size: clamp(14px, 1.2vw, 17px);
+  color: var(--muted);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.9;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.subtitle .kw {
+  font-weight: 700;
+  padding: 0 3px;
+}
+
+.subtitle .kw:nth-child(1) { color: var(--col1); }
+.subtitle .kw:nth-child(2) { color: var(--col2); }
+.subtitle .kw:nth-child(3) { color: var(--col3); }
+.subtitle .kw:nth-child(4) { color: var(--col4); }
+
+/* ═══════════════════════════════════════
+   FLOW SECTION
+═══════════════════════════════════════ */
+.flow-section {
+  margin: 20px 0 60px;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.flow-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  min-width: 140px;
+}
+
+.flow-icon-box {
+  width: 90px; height: 90px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  position: relative;
+  background: rgba(var(--step-color-rgb), 0.08);
+  border: 1px solid rgba(var(--step-color-rgb), 0.2);
+  transition: all 0.4s ease;
+}
+
+.flow-icon-box::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--step-color), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.flow-icon-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  background: var(--step-color);
+  opacity: 0;
+  filter: blur(20px);
+  transition: opacity 0.4s;
+}
+
+.flow-step:hover .flow-icon-box {
+  transform: translateY(-5px) scale(1.05);
+  border-color: rgba(var(--step-color-rgb), 0.4);
+}
+
+.flow-step:hover .flow-icon-box::before,
+.flow-step:hover .flow-icon-box::after {
+  opacity: 0.3;
+}
+
+.flow-icon-box svg {
+  width: 40px; height: 40px;
+  color: var(--step-color);
+  position: relative;
+  z-index: 1;
+}
+
+.flow-step:nth-child(1) { --step-color: var(--col1); --step-color-rgb: 0, 212, 255; }
+.flow-step:nth-child(2) { --step-color: var(--col2); --step-color-rgb: 255, 140, 66; }
+.flow-step:nth-child(3) { --step-color: var(--col3); --step-color-rgb: 251, 191, 36; }
+.flow-step:nth-child(4) { --step-color: var(--col4); --step-color-rgb: 52, 211, 153; }
+
+.flow-label {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--step-color);
+  text-shadow: 0 0 20px rgba(var(--step-color-rgb), 0.4);
+  margin-bottom: 6px;
+}
+
+.flow-desc {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  max-width: 100px;
+}
+
+.flow-arrow {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--col1), var(--col2), var(--col3), var(--col4));
+  margin: 45px 10px 0;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.flow-arrow::before,
+.flow-arrow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid;
+}
+
+.flow-arrow::before { left: -4px; border-color: var(--col1); }
+.flow-arrow::after { right: -4px; border-color: var(--col4); }
+
+/* ═══════════════════════════════════════
+   SECTION STRUCTURE
+═══════════════════════════════════════ */
+.section {
+  margin-bottom: 50px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.section-icon svg {
+  width: 28px; height: 28px;
+}
+
+.section-title-group {
+  flex: 1;
+}
+
+.section-title {
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ═══════════════════════════════════════
+   CARDS GRID
+═══════════════════════════════════════ */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+/* ═══════════════════════════════════════
+   CARD BASE
+═══════════════════════════════════════ */
+.card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 22px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardIn 0.6s ease-out both;
+}
+
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+.card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Top color bar */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--card-color), transparent);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(var(--card-color-rgb), 0.3);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.25),
+    0 0 30px rgba(var(--card-color-rgb), 0.08);
+}
+
+/* Corner glow */
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 80px; height: 80px;
+  background: radial-gradient(circle at top right, var(--card-color), transparent 70%);
+  opacity: 0.06;
+  transition: opacity 0.4s;
+}
+
+.card:hover::after {
+  opacity: 0.12;
+}
+
+.card.c1 { --card-color: var(--col1); --card-color-rgb: 0, 212, 255; }
+.card.c2 { --card-color: var(--col2); --card-color-rgb: 255, 140, 66; }
+.card.c3 { --card-color: var(--col3); --card-color-rgb: 251, 191, 36; }
+.card.c4 { --card-color: var(--col4); --card-color-rgb: 52, 211, 153; }
+
+/* Card Icon */
+.card-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  background: rgba(var(--card-color-rgb), 0.12);
+  border: 1px solid rgba(var(--card-color-rgb), 0.2);
+}
+
+.card-icon svg {
+  width: 22px; height: 22px;
+  color: var(--card-color);
+}
+
+/* ═══════════════════════════════════════
+   CARD CONTENT TYPES
+═══════════════════════════════════════ */
+
+/* Goal Cards */
+.goal-question {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 14px;
+  color: var(--card-color);
+}
+
+.goal-list {
+  list-style: none;
+  margin-bottom: 14px;
+}
+
+.goal-list li {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  padding: 6px 0;
+  padding-left: 18px;
+  position: relative;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.goal-list li:last-child {
+  border-bottom: none;
+}
+
+.goal-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--card-color);
+  opacity: 0.5;
+}
+
+.goal-kpi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(var(--card-color-rgb), 0.15), rgba(var(--card-color-rgb), 0.05));
+  border: 1px solid rgba(var(--card-color-rgb), 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.goal-kpi svg {
+  width: 16px; height: 16px;
+  color: var(--card-color);
+  flex-shrink: 0;
+}
+
+/* AI Tags */
+.ai-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+
+.ai-tag svg {
+  width: 12px; height: 12px;
+}
+
+.ai-tag.blue { background: rgba(0, 212, 255, 0.12); color: var(--col1); border: 1px solid rgba(0, 212, 255, 0.2); }
+.ai-tag.orange { background: rgba(255, 140, 66, 0.12); color: var(--col2); border: 1px solid rgba(255, 140, 66, 0.2); }
+.ai-tag.yellow { background: rgba(251, 191, 36, 0.12); color: var(--col3); border: 1px solid rgba(251, 191, 36, 0.2); }
+.ai-tag.green { background: rgba(52, 211, 153, 0.12); color: var(--col4); border: 1px solid rgba(52, 211, 153, 0.2); }
+
+.ai-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* Pain Section */
+.pain-section {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.pain-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--danger);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.pain-header svg {
+  width: 14px; height: 14px;
+}
+
+.pain-item {
+  font-size: 11px;
+  color: #fca5a5;
+  line-height: 1.6;
+  padding: 5px 0;
+  padding-left: 16px;
+  position: relative;
+}
+
+.pain-item::before {
+  content: '⚠';
+  position: absolute;
+  left: 0;
+  font-size: 10px;
+  top: 5px;
+}
+
+/* Team Cards */
+.team-name {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.team-tag {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+
+.team-tag.blue { background: rgba(0, 212, 255, 0.15); color: var(--col1); }
+.team-tag.orange { background: rgba(255, 140, 66, 0.15); color: var(--col2); }
+.team-tag.yellow { background: rgba(251, 191, 36, 0.15); color: var(--col3); }
+.team-tag.green { background: rgba(52, 211, 153, 0.15); color: var(--col4); }
+
+.role-list {
+  list-style: none;
+}
+
+.role-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.role-list li:last-child {
+  border-bottom: none;
+}
+
+.role-row {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.role-title {
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.role-desc {
+  color: var(--muted);
+}
+
+.result-kpi {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(var(--card-color-rgb), 0.1), transparent);
+  border-radius: 10px;
+  border: 1px solid rgba(var(--card-color-rgb), 0.15);
+}
+
+.result-kpi svg {
+  width: 22px; height: 22px;
+  color: var(--card-color);
+  flex-shrink: 0;
+}
+
+.result-kpi span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--card-color);
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════
+   SKILLS BAR
+═══════════════════════════════════════ */
+.skills-section {
+  margin-top: 60px;
+  animation: fadeInUp 0.8s ease-out 0.8s both;
+}
+
+.skills-card {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.06), rgba(52, 211, 153, 0.06));
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 20px;
+  padding: 36px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skills-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--col1), var(--col3), var(--col4));
+}
+
+.skills-card::after {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.skills-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.skills-icon {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--col1), var(--col4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 3s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.skills-icon svg {
+  width: 32px; height: 32px;
+  color: white;
+}
+
+.skills-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text);
+  max-width: 600px;
+  text-align: center;
+}
+
+.skills-text strong {
+  color: var(--col1);
+  font-weight: 700;
+}
+
+.skills-text .hl {
+  color: var(--col3);
+  font-weight: 700;
+}
+
+.skills-icon:last-child {
+  animation-delay: -1.5s;
+}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════ */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .flow-arrow { display: none; }
+  .flow-wrapper { gap: 24px; justify-content: center; }
+}
+
+@media (max-width: 640px) {
+  .stage { padding: 24px 16px 60px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .header { margin-bottom: 40px; padding: 20px 0; }
+  .flow-label { font-size: 22px; }
+  .flow-icon-box { width: 70px; height: 70px; }
+  .flow-icon-box svg { width: 32px; height: 32px; }
+  .skills-card { padding: 24px; }
+  .skills-content { flex-direction: column; gap: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background Layer -->
+<div class="bg-layer">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-pattern"></div>
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+</div>
+<div class="scan-line"></div>
+
+<div class="stage">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="header">
+    <div class="header-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      AI AgentTeam · 房产营销解决方案
+    </div>
+    <h1 class="title">
+      <span class="title-line1">房产营销龙虾版</span>
+      <span class="title-line2">不是一个人，而是一支团队！</span>
+    </h1>
+    <p class="subtitle">
+      聚焦营销业务核心目标，构建
+      <span class="kw">懂客</span>、
+      <span class="kw">获客</span>、
+      <span class="kw">收客</span>、
+      <span class="kw">养客</span>
+      四大 AgentTeam<br/>为营销团队提供更加专业、丝滑的服务
+    </p>
+  </header>
+
+  <!-- ═══ FLOW SECTION ═══ -->
+  <section class="flow-section">
+    <div class="flow-wrapper">
+      <!-- 懂客 -->
+      <div class="flow-step">
+        <div class="flow-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+            <path d="M11 8v6M8 11h6"/>
+          </svg>
+        </div>
+        <span class="flow-label">懂客</span>
+        <span class="flow-desc">精准识别目标</span>
+      </div>
+      
+      <div class="flow-arrow"></div>
+      
+      <!-- 获客 -->
+      <div class="flow-step">
+        <div class="flow-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <span class="flow-label">获客</span>
+        <span class="flow-desc">获取目标客户</span>
+      </div>
+      
+      <div class="flow-arrow"></div>
+      
+      <!-- 收客 -->
+      <div class="flow-step">
+        <div class="flow-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <span class="flow-label">收客</span>
+        <span class="flow-desc">打动到访客户</span>
+      </div>
+      
+      <div class="flow-arrow"></div>
+      
+      <!-- 养客 -->
+      <div class="flow-step">
+        <div class="flow-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+        <span class="flow-label">养客</span>
+        <span class="flow-desc">维系客户关系</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 1: 营销业务现状及核心目标 ═══ -->
+  <section class="section" id="section-goals">
+    <div class="section-header">
+      <div class="section-icon" style="background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,212,255,0.05));">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--col1)" stroke-width="2">
+          <path d="M12 20V10"/>
+          <path d="M18 20V4"/>
+          <path d="M6 20v-4"/>
+        </svg>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title" style="color: var(--col1);">营销业务现状及核心目标</h2>
+        <p class="section-subtitle">四大业务环节的挑战与KPI</p>
+      </div>
+    </div>
+    
+    <div class="cards-grid">
+      <!-- 懂客 -->
+      <div class="card c1">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="goal-question c1">怎么更精准的识别目标客户？</div>
+        <ul class="goal-list">
+          <li>加深客研报告，但数据量不大</li>
+          <li>加强流量客户的投入，但缺少专业分析</li>
+        </ul>
+        <div class="goal-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          首先去化达标，持续流量建达
+        </div>
+      </div>
+      
+      <!-- 获客 -->
+      <div class="card c2">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <line x1="20" y1="8" x2="20" y2="14"/>
+            <line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+        </div>
+        <div class="goal-question c2">怎么获取更多的目标客户？</div>
+        <ul class="goal-list">
+          <li>加大媒体营销投入，但内容生产在瓶颈</li>
+          <li>希望全员获客，但人力和能力有在瓶颈</li>
+        </ul>
+        <div class="goal-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          获客成本降低，提升自获客成交占比
+        </div>
+      </div>
+      
+      <!-- 收客 -->
+      <div class="card c3">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+          </svg>
+        </div>
+        <div class="goal-question c3">怎么更有效的打动到访客户？</div>
+        <ul class="goal-list">
+          <li>①加强逼客和逼单，但缺少数据支撑</li>
+          <li>②提升案场销售转化能力，但销售精力有限</li>
+        </ul>
+        <div class="goal-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+          提升到访转化率
+        </div>
+      </div>
+      
+      <!-- 养客 -->
+      <div class="card c4">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="goal-question c4">怎么更有温度的维系客户？</div>
+        <ul class="goal-list">
+          <li>①细精细化社群运营，但业主主量数过大，落地难</li>
+          <li>②做实满意度调研，但成本费用过高，人效低</li>
+        </ul>
+        <div class="goal-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          提升老带新成交占比
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 2: 当下AI应用的场景及痛点 ═══ -->
+  <section class="section" id="section-ai">
+    <div class="section-header">
+      <div class="section-icon" style="background: linear-gradient(135deg, rgba(255,140,66,0.2), rgba(255,140,66,0.05));">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--col2)" stroke-width="2">
+          <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/>
+          <path d="M16 14v.5A2 2 0 0 1 14 16.5H10A2 2 0 0 1 8 14.5V14"/>
+          <path d="M12 18v4"/>
+          <path d="M8 22h8"/>
+        </svg>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title" style="color: var(--col2);">当下AI应用的场景及痛点</h2>
+        <p class="section-subtitle">现有AI工具的局限性分析</p>
+      </div>
+    </div>
+    
+    <div class="cards-grid">
+      <!-- 懂客 AI -->
+      <div class="card c1">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+        </div>
+        <div class="ai-tags">
+          <span class="ai-tag blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            AI客研报告
+          </span>
+          <span class="ai-tag blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            AI市场分析
+          </span>
+        </div>
+        <p class="ai-desc">AI主要聚焦在研究报告的生成</p>
+        <div class="pain-section">
+          <div class="pain-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            痛点分析
+          </div>
+          <div class="pain-item">AI报告输出质量不稳定</div>
+          <div class="pain-item">AI数据源获取困难（公域&业系等）</div>
+        </div>
+      </div>
+      
+      <!-- 获客 AI -->
+      <div class="card c2">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </div>
+        <div class="ai-tags">
+          <span class="ai-tag orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            AI直播机器人
+          </span>
+          <span class="ai-tag orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            AI内容智能体
+          </span>
+        </div>
+        <p class="ai-desc">AI主要聚焦在单点式业务场景的应用</p>
+        <div class="pain-section">
+          <div class="pain-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            痛点分析
+          </div>
+          <div class="pain-item">AI应用零散、使用割裂</div>
+          <div class="pain-item">AI后端转化数据未赋能前端获客</div>
+        </div>
+      </div>
+      
+      <!-- 收客 AI -->
+      <div class="card c3">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        </div>
+        <div class="ai-tags">
+          <span class="ai-tag yellow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg>
+            AI智能工牌
+          </span>
+          <span class="ai-tag yellow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            AI智能问数
+          </span>
+        </div>
+        <p class="ai-desc">AI主要聚焦场自身数据的应用分析</p>
+        <div class="pain-section">
+          <div class="pain-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            痛点分析
+          </div>
+          <div class="pain-item">AI以分析为主，没有长出"手脚"</div>
+          <div class="pain-item">AI转化分析缺少了获客&养客端数据</div>
+        </div>
+      </div>
+      
+      <!-- 养客 AI -->
+      <div class="card c4">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+        <div class="ai-tags">
+          <span class="ai-tag green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/></svg>
+            AI满意度调研
+          </span>
+          <span class="ai-tag green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            AI社群运营
+          </span>
+        </div>
+        <p class="ai-desc">AI主要聚焦在单业务场景的应用</p>
+        <div class="pain-section">
+          <div class="pain-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            痛点分析
+          </div>
+          <div class="pain-item">AI以执行为主，缺少"大脑"</div>
+          <div class="pain-item">AI后端数据未能赋能前端</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3: 解决方案及预期收益 ═══ -->
+  <section class="section" id="section-solution">
+    <div class="section-header">
+      <div class="section-icon" style="background: linear-gradient(135deg, rgba(52,211,153,0.2), rgba(52,211,153,0.05));">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--col4)" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="section-title-group">
+        <h2 class="section-title" style="color: var(--col4);">解决方案及预期收益</h2>
+        <p class="section-subtitle">四大 AgentTeam 架构与角色分工</p>
+      </div>
+    </div>
+    
+    <div class="cards-grid">
+      <!-- 客研 AgentTeam -->
+      <div class="card c1">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="team-name" style="color: var(--col1);">
+          客研AgentTeam
+          <span class="team-tag blue">优化中</span>
+        </div>
+        <ul class="role-list">
+          <li>
+            <div class="role-row">
+              <span class="role-title">团队负责人：</span>
+              <span class="role-desc">总对接、辅排其它 Agent任务</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">数据分析师：</span>
+              <span class="role-desc">负责数据的整理和分析，输出报告</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">报告质检师：</span>
+              <span class="role-desc">负责可视化产出精准的输出报告</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">数据处理师：</span>
+              <span class="role-desc">负责公域、私域以及其它Agent数据处理</span>
+            </div>
+          </li>
+        </ul>
+        <div class="result-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <span>客研精准化提升XX%</span>
+        </div>
+      </div>
+      
+      <!-- 获客 AgentTeam -->
+      <div class="card c2">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+        </div>
+        <div class="team-name" style="color: var(--col2);">
+          获客AgentTeam
+          <span class="team-tag orange">已实施</span>
+        </div>
+        <ul class="role-list">
+          <li>
+            <div class="role-row">
+              <span class="role-title">团队负责人：</span>
+              <span class="role-desc">总对接、辅排其它 Agent任务</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">内容策划师：</span>
+              <span class="role-desc">分平台内容类型训练内容客策划，如直播脚本、视频解说等</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">数据处理师：</span>
+              <span class="role-desc">负责公域、私域以及其它Agent数据处理</span>
+            </div>
+          </li>
+        </ul>
+        <div class="result-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <span>获客成本降低约10%，自获客占比提升约1%~2%</span>
+        </div>
+      </div>
+      
+      <!-- 转化 AgentTeam -->
+      <div class="card c3">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <div class="team-name" style="color: var(--col3);">
+          转化AgentTeam
+          <span class="team-tag yellow">4月启</span>
+        </div>
+        <ul class="role-list">
+          <li>
+            <div class="role-row">
+              <span class="role-title">团队负责人：</span>
+              <span class="role-desc">总对接、辅排其它 Agent任务</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">专家刀手：</span>
+              <span class="role-desc">负责配合销经、销售向客户进行话术辅助</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">销售助手：</span>
+              <span class="role-desc">负责销售每日常规管理的辅助</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">数据处理师：</span>
+              <span class="role-desc">负责公域、私域以及其它Agent数据处理</span>
+            </div>
+          </li>
+        </ul>
+        <div class="result-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <span>到访转化率提升约1%</span>
+        </div>
+      </div>
+      
+      <!-- 社群 AgentTeam -->
+      <div class="card c4">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="team-name" style="color: var(--col4);">
+          社群AgentTeam
+          <span class="team-tag green">孵化中</span>
+        </div>
+        <ul class="role-list">
+          <li>
+            <div class="role-row">
+              <span class="role-title">团队负责人：</span>
+              <span class="role-desc">总对接、辅排其它 Agent任务</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">活动策划师：</span>
+              <span class="role-desc">负责社群活动的策划和执行规划</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">满意度调研员：</span>
+              <span class="role-desc">负责满意度问卷的设计，计划辅排和执行</span>
+            </div>
+          </li>
+          <li>
+            <div class="role-row">
+              <span class="role-title">数据处理师：</span>
+              <span class="role-desc">负责公域、私域以及其它Agent数据处理</span>
+            </div>
+          </li>
+        </ul>
+        <div class="result-kpi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <span>老带新成交占比提升约2%~3%</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SKILLS SECTION ═══ -->
+  <section class="skills-section">
+    <div class="skills-card">
+      <div class="skills-content">
+        <div class="skills-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <p class="skills-text">
+          通过 <strong>AgentTeams + Skills 仓库</strong> 的模式，
+          解决AI应用的<span class="hl">数据不通</span>和<span class="hl">业务断点</span>问题！
+        </p>
+        <div class="skills-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// Scroll reveal animation
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, {
+  threshold: 0.1,
+  rootMargin: '0px 0px -50px 0px'
+});
+
+document.querySelectorAll('.section').forEach(el => {
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>
